@@ -54,7 +54,7 @@ Start:
 
     ClearRAM            ; ClearRAM MACRO
 
-    ;DMA_COPY            ; Copy the DMA Routine to HRAM
+    DMA_COPY            ; Copy the DMA Routine to HRAM
 
     ld a, IEF_VBLANK    ; Load VBlank mask into A
     ld [rIE], a         ; Set VBlank interrupt flag

@@ -2,4 +2,3 @@
 *.o
 *.sym
 .DS_Store
-Makefile

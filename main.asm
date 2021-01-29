@@ -2,6 +2,12 @@ INCLUDE "hardware.inc"
 INClUDE "util.asm"
 INCLUDE "dma.asm"
 
+; -------- INCLUDE BACKGROUND TILES --------
+INCLUDE "tiles.asm"
+
+; -------- INCLUDE LEVELS --------
+INCLUDE "level.asm"
+
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
 
@@ -10,6 +16,7 @@ INCLUDE "dma.asm"
 ; (VRAM) is only available during VBLANK. So this is when updating OAM /
 ; sprites is executed.
 SECTION "VBlank", ROM0[$0040]
+    ;reti
     jp _HRAM    ; Jump to the start of DMA Routine
 
 ; LCDC interrupts are LCD-specific interrupts (not including vblank) such as
@@ -60,12 +67,9 @@ Start:
     ld [rIE], a         ; Set VBlank interrupt flag
     ei                  ; Enable interrupts
 
-; -------- WaitVBlank --------
+    ; -------- WaitVBlank --------
 
-.waitVBlank
-    ld a, [rLY]         ; Load LCDC Y-Coordinate into A
-    cp a, SCRN_Y        ; rLY - SCRN_Y
-    jr c, .waitVBlank   ; if rLY < SCRN_Y then jump to .waitVBlank
+    WaitVBlank
 
 ; -------- Initial Configuration --------
 
@@ -74,7 +78,13 @@ Start:
     ld [rLCDC], a
 
     ; -------- Clear the screen ---------
-    call ClearScreen
+    ClearScreen
+
+    ; -------- Clear the tile map ---------
+    ClearTileMap
+
+    ; -------- Load images into VRAM ------
+    CopyData _VRAM, TILES, TILESEND
 
     ; ------- Load colour pallet ----------
     ld a, %11100100
@@ -95,12 +105,27 @@ Start:
     or LCDCF_BGON
     or LCDCF_OBJ8
     or LCDCF_OBJON
+    
+    ; -------- Set screen enable settings ---------
+    ; Bit 7 - LCD Display Enable
+    ; Bit 6 - Window Tile Map Display Select
+    ; Bit 5 - Window Display Enable
+    ; Bit 4 - BG & Window Tile Data Select
+    ; Bit 3 - BG Tile Map Display Select
+    ; Bit 2 - OBJ (Sprite) Size
+    ; Bit 1 - OBJ (Sprite) Display Enable
+    ; Bit 0 - BG/Window Display/Priority
+    ld a, %10010001
     ld [rLCDC], a
+
+    ; -------- Set screen enable settings ---------
+    LoadLevel LEVEL, LEVELEND
 
 ; -------- Top of game loop ---------
 .loop
+
     jp .loop             ; Jump to the top of the game loop
 
 ; -------- Lock up the CPU ---------
-.lockup         
-    jr .lockup          ; Should never be reached - use jp .lockup at any point for debugging
+.debug         
+    jr .debug          ; Should never be reached - use jp .lockup at any point for debugging

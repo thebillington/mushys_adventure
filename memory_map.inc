@@ -1,6 +1,16 @@
    IF !DEF(MEMORY_MAP_INC)
 MEMORY_MAP_INC SET 1
 
+; -------- OAM ------\
+
+; Sprite VRAM map location
+_SPRITE_VRAM EQU _BLOCK2
+
+; Sprites
+PLAYER EQU $00
+
+; -------- Usable RAM ------
+
 ; 2 bytes to store the pointer to the level tile data (top tile of the next column)
 LEVEL_COLUMN_POINTER_LOW EQU _RAM + $A0
 LEVEL_COLUMN_POINTER_HIGH EQU LEVEL_COLUMN_POINTER_LOW + $01

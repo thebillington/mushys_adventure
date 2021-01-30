@@ -40,6 +40,9 @@ ENDM
 _HW          EQU $FF00
 
 _VRAM        EQU $8000 ; $8000->$9FFF
+_BLOCK0      EQU $8000 ; $8000->$87FF
+_BLOCK1      EQU $8800 ; $8800->$8FFF
+_BLOCK2      EQU $9000 ; $9000->$97FF
 _SCRN0       EQU $9800 ; $9800->$9BFF
 _SCRN1       EQU $9C00 ; $9C00->$9FFF
 _SRAM        EQU $A000 ; $A000->$BFFF

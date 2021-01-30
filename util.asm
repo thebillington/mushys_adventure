@@ -74,9 +74,9 @@ ENDM
 ; Writes 0s to BG tile data & map
 ClearScreen: MACRO
 
-    ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
+    ld hl, _VRAM               ; Load HL with pointer to the BG tile data
     ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
-    ld bc, _VRAM_END - _SCRN0   ; Load BC with length of BG tile data + BG tile map banks
+    ld bc, _VRAM_END - _VRAM   ; Load BC with length of BG tile data + BG tile map banks
 
 .clearScreenLoop\@
     ld a, d                     ; Load A with 8 MSBs of _BG_MAP
@@ -224,11 +224,40 @@ MOD: MACRO
 
     ld a, \1
 
-.divLoop\@
+.modLoop\@
     sub \2
 
-    jr nc, .divLoop\@
+    jr nc, .modLoop\@
     add \2
+
+ENDM
+
+; Divide method
+DIVIDE: MACRO
+
+    ld a, \1
+    ld b, $00
+
+.divLoop\@
+    sub \2
+    inc b
+
+    jr nc, .divLoop\@
+    ld a, b
+
+ENDM
+
+; Multiply method
+MULT: MACRO
+
+    ld c, a
+    ld b, \1
+
+.multLoop\@
+    add c
+    dec b
+
+    jr nz, .multLoop\@
 
 ENDM
 

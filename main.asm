@@ -124,11 +124,14 @@ Start:
     halt
     call gbt_update
 
-; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .story1      ; waits until button isn't being pressed
 
-    jr z, .story1       ; If not A then loop
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
     LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
@@ -139,11 +142,14 @@ Start:
     halt
     call gbt_update
 
-; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+    ; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .story2     ; waits until button isn't being pressed
 
-    jr z, .story2       ; If not A then loop
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
     LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
@@ -154,11 +160,14 @@ Start:
     halt
     call gbt_update
 
-; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+    ; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .story3     ; waits until button isn't being pressed
 
-    jr z, .story2       ; If not A then loop
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .story3               ; If not A then loop
 
 ; -------- Start of game code ---------
 

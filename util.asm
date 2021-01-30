@@ -260,6 +260,8 @@ FetchJoypadState: MACRO
 
     or b            ; Combine with the button states
 
+    ld [PREV_BTN_STATE], a   ; store current state in RAM - use EQU
+
 ENDM
 
 ; Load an image file
@@ -315,4 +317,31 @@ SwitchScreenOff: MACRO
     xor a           ; (ld a, 0)
     ld [rLCDC], a   ; Load A into LCDC register
 
+ENDM
+
+; Check state of button press
+JpIfButtonHeld: MACRO
+
+; -------- Check button state ---------
+    ld a, [PREV_BTN_STATE]      ; Load last state from RAM - use EQU
+    AND \1                      ; apply button mask
+    ld b, a                     ; Load current state into b
+
+    FetchJoypadState            ; Check for button press
+    AND \1                      ; apply button mask
+
+    xor b                       ; Compare stored state vs current state
+
+    jp z, \2    ; if not 0 jump to passed label
+ENDM
+
+; -------- Wait before button can be pressed ---------
+WaitBeforeButtonPress: MACRO
+
+ld a, $20                   ; Load value 32
+
+.waitLoop\@
+    dec a                   ; decreases a by one
+
+    jp nz, .waitLoop\@       ; loop if not 0
 ENDM

@@ -12,6 +12,9 @@ INCLUDE "level.asm"
 
 ; -------- INCLUDE SPLASH SCREEN --------
 INCLUDE "images/splash.asm"
+INCLUDE "images/storyOne.asm"
+INCLUDE "images/storyTwo.asm"
+INCLUDE "images/storyThree.asm"
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
@@ -85,7 +88,7 @@ Start:
     ClearScreen
 
     ; -------- Load splash screen tile data ------
-    CopyData _VRAM, mushysplash_tile_data, mushysplash_tile_data_end
+    CopyData _VRAM, mushystory3_tile_data, mushystory3_tile_data_end
 
     ; ------- Load colour pallet ----------
     ld a, %11100100
@@ -124,7 +127,7 @@ Start:
     ld [rLCDC], a
 
     ; -------- Load splash screen tile map ------
-    CopyTileMap _SCRN0, mushysplash_map_data, mushysplash_map_data_end
+    CopyTileMap _SCRN0, mushystory3_map_data, mushystory3_map_data_end
 
 .splash
     ; -------- Sound stuff ------

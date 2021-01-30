@@ -89,8 +89,12 @@ Start:
     ld [rSCX], a
     ld [rSCY], a
 
-    ; -------- Turn off sound --------------
-    ld [rNR52], a
+    ;  -------- GBT_Player Setup --------
+    ld de, song_data
+    ld bc, BANK(song_data)
+    ld a, $05
+    call gbt_play
+    ;  -------- GBT_Player Setup END --------
 
     ; -------- Turn screen back on ---------
     xor a
@@ -99,13 +103,6 @@ Start:
     or LCDCF_OBJ8
     or LCDCF_OBJON
     ld [rLCDC], a
-
-;  -------- GBT_Player Setup --------
-    ld de, song_data
-    ld bc, BANK(song_data)
-    ld a, $05
-    call gbt_play
-;  -------- GBT_Player Setup END --------
 
 ; -------- Top of game loop ---------
 .loop

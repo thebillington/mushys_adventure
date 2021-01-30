@@ -4,6 +4,14 @@ INClUDE "util.asm"
 INCLUDE "dma.asm"
 
 EXPORT  song_data
+; -------- INCLUDE BACKGROUND TILES --------
+INCLUDE "tiles.asm"
+
+; -------- INCLUDE LEVELS --------
+INCLUDE "level.asm"
+
+; -------- INCLUDE SPLASH SCREEN --------
+INCLUDE "images/splash.asm"
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
@@ -63,12 +71,9 @@ Start:
     ld [rIE], a         ; Set VBlank interrupt flag
     ei                  ; Enable interrupts
 
-; -------- WaitVBlank --------
+    ; -------- WaitVBlank --------
 
-.waitVBlank
-    ld a, [rLY]         ; Load LCDC Y-Coordinate into A
-    cp a, SCRN_Y        ; rLY - SCRN_Y
-    jr c, .waitVBlank   ; if rLY < SCRN_Y then jump to .waitVBlank
+    WaitVBlank
 
 ; -------- Initial Configuration --------
 
@@ -77,7 +82,10 @@ Start:
     ld [rLCDC], a
 
     ; -------- Clear the screen ---------
-    call ClearScreen
+    ClearScreen
+
+    ; -------- Load splash screen tile data ------
+    CopyData _VRAM, mushysplash_tile_data, mushysplash_tile_data_end
 
     ; ------- Load colour pallet ----------
     ld a, %11100100
@@ -102,14 +110,74 @@ Start:
     or LCDCF_BGON
     or LCDCF_OBJ8
     or LCDCF_OBJON
+    
+    ; -------- Set screen enable settings ---------
+    ; Bit 7 - LCD Display Enable
+    ; Bit 6 - Window Tile Map Display Select
+    ; Bit 5 - Window Display Enable
+    ; Bit 4 - BG & Window Tile Data Select
+    ; Bit 3 - BG Tile Map Display Select
+    ; Bit 2 - OBJ (Sprite) Size
+    ; Bit 1 - OBJ (Sprite) Display Enable
+    ; Bit 0 - BG/Window Display/Priority
+    ld a, %10010001
     ld [rLCDC], a
+
+    ; -------- Load splash screen tile map ------
+    CopyTileMap _SCRN0, mushysplash_map_data, mushysplash_map_data_end
+
+.splash
+    ; -------- Sound stuff ------
+    halt
+    call gbt_update
+
+    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    swap a          ; Move the lower 4 bits to the upper 4 bits
+    ld b, a         ; Save the buttons states to b
+
+    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    or b            ; Combine with the button states
+
+    and PADF_START  ; If start then set NZ flag
+
+    jr z, .splash     ; If not start then loop
+
+; -------- START GAME --------
+
+    ; -------- Clear screen ------
+    ClearScreen
+
+    ; -------- Clear tiles ------
+    ClearTileMap
+
+    ; -------- Load images into VRAM ------
+    CopyTileMap _VRAM, TILES, TILESEND
+
+    ; -------- Set screen enable settings ---------
+    LoadLevel LEVEL, LEVELEND
 
 ; -------- Top of game loop ---------
 .loop
+    ; -------- Sound stuff ------
     halt
     call gbt_update
+
     jp .loop             ; Jump to the top of the game loop
 
 ; -------- Lock up the CPU ---------
-.lockup         
-    jr .lockup          ; Should never be reached - use jp .lockup at any point for debugging
+.debug         
+    jr .debug          ; Should never be reached - use jp .lockup at any point for debugging

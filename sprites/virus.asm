@@ -1,5 +1,5 @@
-SECTION "VIRUS", ROM0
+SECTION "Virus", ROM0
 
-Virus:
+VIRUS:
 	DB $18,$10,$18,$08,$18,$10,$18,$08
 	DB $18,$10,$00,$42,$7e,$7e,$00,$42

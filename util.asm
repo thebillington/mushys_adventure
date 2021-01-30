@@ -4,6 +4,11 @@ _RAM_END EQU $DFFF
 _VRAM_END EQU $9FF0
 _BG_MAP EQU $9000
 
+; Timer modulo value
+__TMA_Value__ EQU $10
+
+CNT EQU $C100
+
 OAMDATALOC = _RAM  
 
 ; Generic sprite function

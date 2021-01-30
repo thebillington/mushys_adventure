@@ -35,7 +35,7 @@ SECTION "LCDC", ROM0[$0048]
 ; Timer interrupt is triggered when the timer, rTIMA, ($FF05) overflows.
 ; rDIV, rTIMA, rTMA, rTAC all control the timer.
 SECTION "Timer", ROM0[$0050]
-    reti
+    jp TIHandler    ; Jump to timer handler routine
 
 ; Serial interrupt occurs after the gameboy transfers a byte through the
 ; gameboy link cable.
@@ -65,15 +65,32 @@ endr
 SECTION "Game Code", ROM0[$0150]
 
 Start:
-    ld SP, $FFFF        ; Set stack pointer to the top of HRAM
+    ld SP, $FFFF    ; Set stack pointer to the top of HRAM
 
-    ClearRAM            ; ClearRAM MACRO
+    ClearRAM        ; ClearRAM MACRO
 
-    DMA_COPY            ; Copy the DMA Routine to HRAM
+    DMA_COPY        ; Copy the DMA Routine to HRAM
 
-    ld a, IEF_VBLANK    ; Load VBlank mask into A
-    ld [rIE], a         ; Set VBlank interrupt flag
-    ei                  ; Enable interrupts
+    xor a               ; (ld a, 0)
+    ld [rTIMA], a       ; Set TIMA to 0
+    or TACF_STOP        ; Set STOP bit in A
+    or TACF_16KHZ       ; Set divider bit in A
+    ld [rTAC], a        ; Load TAC with A (settings)
+    ld a, __TMA_Value__ ; Load A with modulo value
+    ld [rTMA], a        ; Load TMA with A
+    ld [rTIMA], a       ; Load TIMA with A (Reset to zero)
+
+    xor a           ; (ld a, 0)
+    or IEF_VBLANK   ; Load VBlank mask into A
+    or IEF_TIMER    ; Load Timer mask into A
+    ld [rIE], a     ; Set interrupt flags
+    ei              ; Enable interrupts
+
+    xor a           ; (ld a, 0)
+    or TACF_16KHZ   ; Set divider bit in A 
+    or TACF_START   ; Set START bit in A
+    ld [rDIV], a    ; Load DIV with A (Reset to zero)
+    ld [rTAC], a    ; Load TAC with A
 
 ; -------- Initial Configuration --------
 
@@ -103,11 +120,6 @@ Start:
     LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
 
 .splash
-
-; -------- Wait for sound ------
-    halt
-    call gbt_update
-
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
     and PADF_START      ; If start then set NZ flag
@@ -118,11 +130,6 @@ Start:
     LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImage MACRO
 
 .story1
-
-; -------- Wait for sound ------
-    halt
-    call gbt_update
-
 ; -------- Wait for A button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
     and PADF_A          ; If A then set NZ flag
@@ -133,11 +140,6 @@ Start:
     LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
 
 .story2
-
-; -------- Wait for sound ------
-    halt
-    call gbt_update
-
 ; -------- Wait for A button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
     and PADF_A          ; If A then set NZ flag
@@ -148,11 +150,6 @@ Start:
     LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
 
 .story3
-
-; -------- Wait for sound ------
-    halt
-    call gbt_update
-
 ; -------- Wait for A button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
     and PADF_A          ; If A then set NZ flag
@@ -177,11 +174,7 @@ Start:
 
 ; -------- Top of game loop ---------
 .loop
-
-; -------- Wait for sound ------
-    halt
-    call gbt_update
-
+; -------- Top of game loop ---------
     jp .loop             ; Jump to the top of the game loop
 
 ; -------- END Main Loop --------
@@ -189,3 +182,19 @@ Start:
 ; -------- Lock up the CPU ---------
 .debug         
     jr .debug      ; Should never be reached
+
+; -------- Timer Interrupt Handler ---------
+TIHandler:
+    push hl     ; Preserve HL register
+    push de     ; Preserve DE register
+    push bc     ; Preserve BC register
+    push af     ; Preserve AF register
+
+    call gbt_update
+
+    pop af      ; Restore AF register
+    pop bc      ; Restore BC register
+    pop de      ; Restore DE register
+    pop hl      ; Restore HL register
+    
+    reti

@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "memory_map.inc"
 INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
 INCLUDE "dma.asm"
@@ -74,7 +75,7 @@ Start:
     xor a               ; (ld a, 0)
     ld [rTIMA], a       ; Set TIMA to 0
     or TACF_STOP        ; Set STOP bit in A
-    or TACF_16KHZ       ; Set divider bit in A
+    or TACF_4KHZ       ; Set divider bit in A
     ld [rTAC], a        ; Load TAC with A (settings)
     ld a, __TMA_Value__ ; Load A with modulo value
     ld [rTMA], a        ; Load TMA with A
@@ -87,7 +88,7 @@ Start:
     ei              ; Enable interrupts
 
     xor a           ; (ld a, 0)
-    or TACF_16KHZ   ; Set divider bit in A 
+    or TACF_4KHZ   ; Set divider bit in A 
     or TACF_START   ; Set START bit in A
     ld [rDIV], a    ; Load DIV with A (Reset to zero)
     ld [rTAC], a    ; Load TAC with A
@@ -131,30 +132,36 @@ Start:
 
 .story1
 ; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
 
-    jr z, .story1       ; If not A then loop
+    jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
     LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
 
 .story2
-; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .story2     ; waits until button isn't being pressed
 
-    jr z, .story2       ; If not A then loop
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
     LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
 
 .story3
-; -------- Wait for A button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
-    and PADF_A          ; If A then set NZ flag
+; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .story3     ; waits until button isn't being pressed
 
-    jr z, .story2       ; If not A then loop
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .story3               ; If not A then loop
 
 ; -------- Start of game code ---------
 
@@ -166,8 +173,8 @@ Start:
 ; -------- Load images into VRAM ------
     CopyData _VRAM, TILES, TILESEND     ; CopyData MACRO
 
-; -------- Set screen enable settings ---------
-    LoadLevel LEVEL, LEVELEND           ; LoadLevel MACRO
+; -------- Load level ---------
+    LoadLevel
     
 ; -------- Set screen enable settings ---------
     SwitchScreenOn %10010001            ; SwitchScreenOn MACRO

@@ -5,7 +5,7 @@ _VRAM_END EQU $9FF0
 _BG_MAP EQU $9000
 
 ; Timer modulo value
-__TMA_Value__ EQU $10
+__TMA_Value__ EQU $99
 
 CNT EQU $C100
 
@@ -107,39 +107,129 @@ CopyData: MACRO
     jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Loads the tile data into the correct positions for a level
+; Loads level data pointers into RAM and the first 28 columns of level data
 LoadLevel: MACRO
 
-; Load the VRAM location for the tile to map into HL
-    ld hl, \1       ; Load the start of the level data into HL
-    ld a, [hli]
-    ld d, a         ; Load the data held at HL into d then increment HL
-    ld a, [hli]
-    ld e, a         ; Load the data held at HL into e then increment HL
+    ; Load bc with the value of the first tile of the first column of data
+    ld bc, LEVEL
 
-; Load BC with the length of the level data
-    ld bc, \2 - \1
+    ; Store the location into RAM
+    ld hl, LEVEL_COLUMN_POINTER_LOW
+    ld [hl], b
+    ld hl, LEVEL_COLUMN_POINTER_HIGH
+    ld [hl], c
 
-.loadLevelLoop\@
+    ld hl, COLUMN_LOAD_COUNTER          
+    ld [hl], $1C
 
-    ld a, [hl]      ; Load a with the tile number to put into VRAM
-    push af         ; Push a before we reuse the register
+    ld hl, COLUMN_OFFSET_X
+    ld [hl], $0
 
-    ld a, d
-    ld h, a
-    ld a, e
-    ld l, a         ; Move DE (the VRAM location of the tile) into HL
+.levelInitLoop\@
+    ld de, $9840
 
-    pop af          ; Retrieve our tile number
-    ld [hl], a      ; Move the tile number into the memory location pointed to by HL
+    ld a, [COLUMN_OFFSET_X]
+    add e
+    ld e, a
 
-    inc de          ; Move DE to point to the next tile location
-    dec bc
-    dec bc
-    dec bc          ; Decrement BC 3 times (each tile has 3 bytes of data)
+    LoadLevelColumn
+
+    ld a, [COLUMN_OFFSET_X]
+    inc a
+    ld hl, COLUMN_OFFSET_X
+    ld [hl], a
+
+    ld a, [COLUMN_LOAD_COUNTER]
+    sub a, $01
+    ld hl, COLUMN_LOAD_COUNTER
+    ld [hl], a
+
+    jr nz, .levelInitLoop\@
+
+ENDM
+
+AddSixteenBitBC: MACRO
+
     ld a, c
-    or b
-    jr nz, .loadLevelLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
+    add a, \1
+    ld c, a
+    ld a, b
+    adc a, $00
+    ld b, a
+
+ENDM
+
+AddSixteenBitDE: MACRO
+
+    ld a, e
+    add a, \1
+    ld e, a
+    ld a, d
+    adc a, $00
+    ld d, a
+
+ENDM
+
+AddSixteenBitHL: MACRO
+
+    ld a, l
+    add a, \1
+    ld l, a
+    ld a, h
+    adc a, $00
+    ld h, a
+
+ENDM
+
+CalculateNextColumnToLoad: MACRO
+
+    ld a, [rSCX]                ; Load the screen x position
+
+    MOD a, $20                  ; Divide by 32 and get the remainder (what is the current leftmost visible tile)
+    ADD a, $1C                  ; Add 28 to get the offset
+    MOD a, $20                  ; Calculate the X offset for the next column to load (leftmost visible tile + 20 + 8)
+
+    ld [SCREEN_OFFSET_X], a     ; Store the value for the point at which we need to load the next tile
+
+ENDM
+
+LoadLevelColumn: MACRO
+    
+    ; Before calling BC needs to hold the memory location holding the value of the next tile (LEVEL_COLUMN_POINTER_HIGH + lh hl, LEVEL_COLUMN_POINTER_LOW)
+    ; Before calling DE needs to hold the memory location of the tile in the top row of the next column to draw
+
+    ld hl, ROW_LOAD_COUNTER          
+    ld [hl], $0D
+
+.loadColumnLoop\@
+    ld a, [bc]
+
+    ld h, d
+    ld l, e
+    ld [hl], a
+
+    inc bc
+    AddSixteenBitDE $20
+
+    ld a, [ROW_LOAD_COUNTER]
+    sub a, $01
+    ld hl, ROW_LOAD_COUNTER
+    ld [hl], a
+
+    jr nz, .loadColumnLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
+ENDM
+
+; Modulus method
+MOD: MACRO
+
+    ld a, \1
+
+.divLoop\@
+    sub \2
+
+    jr nc, .divLoop\@
+    add \2
+
 ENDM
 
 ; Waits for VBLANK before commiting any memory to VRAM
@@ -174,6 +264,8 @@ FetchJoypadState: MACRO
     and $0F         ; Remove top 4 bits
 
     or b            ; Combine with the button states
+
+    ld [PREV_BTN_STATE], a   ; store current state in RAM - use EQU
 
 ENDM
 
@@ -230,4 +322,23 @@ SwitchScreenOff: MACRO
     xor a           ; (ld a, 0)
     ld [rLCDC], a   ; Load A into LCDC register
 
+ENDM
+
+; Check state of button press
+JpIfButtonHeld: MACRO
+
+; -------- Check button state ---------
+    ld a, [PREV_BTN_STATE]      ; Load last state from RAM - use EQU
+    AND \1                      ; apply button mask
+    ld b, a                     ; Load current state into b
+
+    push bc
+    FetchJoypadState            ; Check for button press
+    AND \1                      ; apply button mask
+
+    pop bc
+
+    xor b                       ; Compare stored state vs current state
+
+    jp z, \2    ; if not 0 jump to passed label
 ENDM

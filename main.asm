@@ -2,12 +2,18 @@ INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
 INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
+INClUDE "player_util.asm"
 INCLUDE "dma.asm"
 
 EXPORT  song_data
 
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"
+
+; -------- INCLUDE SPRITES --------
+INCLUDE "sprites/mushyBig.asm"
+INCLUDE "sprites/mushyMid.asm"
+INCLUDE "sprites/mushySmall.asm"
 
 ; -------- INCLUDE LEVELS --------
 INCLUDE "level.asm"
@@ -112,8 +118,8 @@ Start:
     ld de, song_data
     ld bc, BANK(song_data)
     ld a, $05
-    call gbt_play
-    call gbt_loop
+    ;call gbt_play
+    ;call gbt_loop
 
 ; -------- Splash screen and story --------
 
@@ -170,18 +176,24 @@ Start:
 
     ClearScreen         ; ClearScreen MACRO
 
-; -------- Load images into VRAM ------
-    CopyData _VRAM, TILES, TILESEND     ; CopyData MACRO
+; -------- Load tiles into VRAM ------
+    CopyData _VRAM, TILES, TILESEND
+    CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND
 
 ; -------- Load level ---------
     LoadLevel
-    
-; -------- Set screen enable settings ---------
-    SwitchScreenOn %10010001            ; SwitchScreenOn MACRO
 
-; -------- Top of game loop ---------
+; ------- Init player sprite into OAM -------
+    LoadPlayer
+
+; -------- Set screen enable settings ---------
+    SwitchScreenOn %10010011            ; SwitchScreenOn MACRO
+
+; -------- START Main Loop ---------
 .loop
-; -------- Top of game loop ---------
+
+
+
     jp .loop             ; Jump to the top of the game loop
 
 ; -------- END Main Loop --------
@@ -197,7 +209,7 @@ TIHandler:
     push bc     ; Preserve BC register
     push af     ; Preserve AF register
 
-    call gbt_update
+    ;call gbt_update
 
     pop af      ; Restore AF register
     pop bc      ; Restore BC register

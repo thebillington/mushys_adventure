@@ -4,6 +4,7 @@ INClUDE "util.asm"
 INCLUDE "dma.asm"
 
 EXPORT  song_data
+
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"
 
@@ -76,107 +77,108 @@ Start:
 
 ; -------- Initial Configuration --------
 
-    ; -------- Clear the screen ---------
+; -------- Clear the screen ---------
     WipeVRAM %10010001
 
-    ; ------- Load colour pallet ----------
+; ------- Load colour pallet ----------
     ld a, %11100100     ; Load A with colour pallet settings
     ld [rBGP], a        ; Load BG colour pallet with A
     ld [rOBP0], a       ; Load OBJ0 colour pallet with A
 
-    ; ------- Set scroll x and y ----------
+; ------- Set scroll x and y ----------
     xor a               ; (ld a, 0)
     ld [rSCX], a        ; Load BG scroll Y with A
     ld [rSCY], a        ; Load BG scroll X with A
 
-    ;  -------- GBT_Player Setup --------
+;  -------- GBT_Player Setup --------
     ld de, song_data
     ld bc, BANK(song_data)
     ld a, $05
     call gbt_play
+    call gbt_loop
 
 ; -------- Splash screen and story --------
 
-    ; -------- Load splash screen ---------
-    LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001
+; -------- Load splash screen ---------
+    LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
 
 .splash
 
-    ; -------- Wait for sound ------
+; -------- Wait for sound ------
     halt
     call gbt_update
 
-    ; -------- Wait for start button press ------
-    FetchJoypadState
-    and PADF_START  ; If start then set NZ flag
+; -------- Wait for start button press ------
+    FetchJoypadState    ; FetchJoypadState MACRO
+    and PADF_START      ; If start then set NZ flag
 
-    jr z, .splash     ; If not start then loop
+    jr z, .splash       ; If not start then loop
 
-    ; -------- Load story 1 ---------
-    LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001
+; -------- Load story 1 ---------
+    LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImage MACRO
 
 .story1
 
-    ; -------- Wait for sound ------
+; -------- Wait for sound ------
     halt
     call gbt_update
 
-    ; -------- Wait for A button press ------
-    FetchJoypadState
-    and PADF_A  ; If A then set NZ flag
+; -------- Wait for A button press ------
+    FetchJoypadState    ; FetchJoypadState MACRO
+    and PADF_A          ; If A then set NZ flag
 
-    jr z, .story1     ; If not A then loop
+    jr z, .story1       ; If not A then loop
 
-    ; -------- Load story 2 ---------
-    LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001
+; -------- Load story 2 ---------
+    LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
 
 .story2
 
-    ; -------- Wait for sound ------
+; -------- Wait for sound ------
     halt
     call gbt_update
 
-    ; -------- Wait for A button press ------
-    FetchJoypadState
-    and PADF_A  ; If A then set NZ flag
+; -------- Wait for A button press ------
+    FetchJoypadState    ; FetchJoypadState MACRO
+    and PADF_A          ; If A then set NZ flag
 
-    jr z, .story2     ; If not A then loop
+    jr z, .story2       ; If not A then loop
 
-    ; -------- Load story 3 ---------
-    LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001
+; -------- Load story 3 ---------
+    LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
 
 .story3
 
-    ; -------- Wait for sound ------
+; -------- Wait for sound ------
     halt
     call gbt_update
 
-    ; -------- Wait for A button press ------
-    FetchJoypadState
-    and PADF_A  ; If A then set NZ flag
+; -------- Wait for A button press ------
+    FetchJoypadState    ; FetchJoypadState MACRO
+    and PADF_A          ; If A then set NZ flag
 
-    jr z, .story3     ; If not A then loop
+    jr z, .story2       ; If not A then loop
 
 ; -------- Start of game code ---------
 
-    ; -------- Wipe all data from VRAM ---------
-    WipeVRAM %10010001
+; -------- Wipe all data from VRAM ---------
+    SwitchScreenOff     ; SwitchScreenOff MACRO
 
-    SwitchScreenOff
+    ClearScreen         ; ClearScreen MACRO
 
-    ; -------- Load images into VRAM ------
-    CopyData _VRAM, TILES, TILESEND
+; -------- Load images into VRAM ------
+    CopyData _VRAM, TILES, TILESEND     ; CopyData MACRO
 
-    ; -------- Set screen enable settings ---------
-    LoadLevel LEVEL, LEVELEND
+; -------- Set screen enable settings ---------
+    LoadLevel LEVEL, LEVELEND           ; LoadLevel MACRO
     
-    ; -------- Set screen enable settings ---------
-    SwitchScreenOn %10010001
+; -------- Set screen enable settings ---------
+    SwitchScreenOn %10010001            ; SwitchScreenOn MACRO
 
 ; -------- Top of game loop ---------
 .loop
 
-    ; -------- Wait for sound ------
+; -------- Wait for sound ------
     halt
     call gbt_update
 

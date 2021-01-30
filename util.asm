@@ -85,29 +85,6 @@ ClearScreen: MACRO
     jr nz, .clearScreenLoop\@   ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Writes 0s to tile maps
-ClearTileMap: MACRO
-    ld hl, _VRAM                ; Load HL with pointer to the tile data
-    ld de, $00                  ; Load DE with 0 (all empty tiles)
-    ld bc, _SCRN0 - _VRAM       ; Load BC with length of tile data
-
-    ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
-    ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
-    ld bc, _VRAM_END - _SCRN0   ; Load BC with length of BG tile data + BG tile map banks
-
-.clearScreenLoop\@
-    WaitVBlank
-    ld a, d                     ; Load A with 8 MSBs of _BG_MAP
-    ld [hl], a                  ; Load BG tile data with A
-    ld a, e                     ; Load A with 8 LSBs of _BG_MAP
-    ld [hl], a                  ; Load BG tile data with A
-    inc hl                      ; Load HL with next VRAM address
-    dec bc                      ; Decrement length of banks (count)
-    ld a, c                     ; Load A with 8 LSBs of count
-    or b                        ; OR count 8 LSBs with its 8 MSBs
-    jr nz, .clearScreenLoop\@   ; If the result is not zero (BC ~= 0), continue loop
-ENDM
-
 ; Copys data from src address to dst address
 CopyData: MACRO
 
@@ -125,29 +102,17 @@ CopyData: MACRO
     jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Copys data from src address to dst address & preserves registers
-CopyData_P: MACRO
-    push hl     ; Preserve HL register
-    push de     ; Preserve DE register
-    push bc     ; Preserve BC register
-
-.waitVBlank\@
-    ld a, [rLY]             ; Load LCDC Y-Coordinate into A
-    cp a, SCRN_Y            ; rLY - SCRN_Y
-    jr c, .waitVBlank\@     ; if rLY < SCRN_Y then jump to .waitVBlank
-ENDM
-
 ; Loads the tile data into the correct positions for a level
 LoadLevel: MACRO
 
-    ; Load the VRAM location for the tile to map into HL
+; Load the VRAM location for the tile to map into HL
     ld hl, \1       ; Load the start of the level data into HL
     ld a, [hli]
     ld d, a         ; Load the data held at HL into d then increment HL
     ld a, [hli]
     ld e, a         ; Load the data held at HL into e then increment HL
 
-    ; Load BC with the length of the level data
+; Load BC with the length of the level data
     ld bc, \2 - \1
 
 .loadLevelLoop\@
@@ -212,13 +177,13 @@ LoadImage: MACRO
 
     SwitchScreenOff
 
-    ; -------- Load splash screen tile data ------
+; -------- Load splash screen tile data ------
     CopyData _VRAM, \1, \2
 
-    ; -------- Load splash screen tile map ------
+; -------- Load splash screen tile map ------
     CopyData _SCRN0, \3, \4
     
-    ; -------- Set screen enable settings ---------
+; -------- Set screen enable settings ---------
     SwitchScreenOn \5
 
 ENDM
@@ -228,29 +193,26 @@ WipeVRAM: MACRO
 
     SwitchScreenOff
 
-    ; -------- Clear screen ------
+; -------- Clear screen ------
     ClearScreen
     
-    ; -------- Set screen enable settings ---------
+; -------- Set screen enable settings ---------
     SwitchScreenOn \1
-
-    ; -------- Clear tiles ------
-    ClearTileMap
 
 ENDM
 
 ; Switch screen off
 SwitchScreenOn: MACRO
     
-    ; -------- Set screen enable settings ---------
-    ; Bit 7 - LCD Display Enable
-    ; Bit 6 - Window Tile Map Display Select
-    ; Bit 5 - Window Display Enable
-    ; Bit 4 - BG & Window Tile Data Select
-    ; Bit 3 - BG Tile Map Display Select
-    ; Bit 2 - OBJ (Sprite) Size
-    ; Bit 1 - OBJ (Sprite) Display Enable
-    ; Bit 0 - BG/Window Display/Priority
+; -------- Set screen enable settings ---------
+; Bit 7 - LCD Display Enable
+; Bit 6 - Window Tile Map Display Select
+; Bit 5 - Window Display Enable
+; Bit 4 - BG & Window Tile Data Select
+; Bit 3 - BG Tile Map Display Select
+; Bit 2 - OBJ (Sprite) Size
+; Bit 1 - OBJ (Sprite) Display Enable
+; Bit 0 - BG/Window Display/Priority
     ld a, \1
     ld [rLCDC], a
 
@@ -259,8 +221,8 @@ ENDM
 ; Switch screen off
 SwitchScreenOff: MACRO
 
-    ; -------- Switch screen off ---------
-    xor a ; (ld a, 0)
-    ld [rLCDC], a
+; -------- Switch screen off ---------
+    xor a           ; (ld a, 0)
+    ld [rLCDC], a   ; Load A into LCDC register
 
 ENDM

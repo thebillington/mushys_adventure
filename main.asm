@@ -74,35 +74,37 @@ Start:
     ld [rIE], a         ; Set VBlank interrupt flag
     ei                  ; Enable interrupts
 
-; -------- WaitVBlank --------
-    WaitVBlank      ; WaitVBlank MACRO
-
 ; -------- Initial Configuration --------
 
     ; -------- Clear the screen ---------
-    ClearScreen
-    ClearTileMap
+    WipeVRAM %10010001
 
-; ------- Load colour pallet ----------
+    ; ------- Load colour pallet ----------
     ld a, %11100100     ; Load A with colour pallet settings
     ld [rBGP], a        ; Load BG colour pallet with A
     ld [rOBP0], a       ; Load OBJ0 colour pallet with A
 
-; ------- Set scroll x and y ----------
+    ; ------- Set scroll x and y ----------
     xor a               ; (ld a, 0)
     ld [rSCX], a        ; Load BG scroll Y with A
     ld [rSCY], a        ; Load BG scroll X with A
 
-;  -------- GBT_Player Setup --------
+    ;  -------- GBT_Player Setup --------
     ld de, song_data
     ld bc, BANK(song_data)
     ld a, $05
     call gbt_play
 
+; -------- Splash screen and story --------
+
     ; -------- Load splash screen ---------
     LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001
 
 .splash
+
+    ; -------- Wait for sound ------
+    halt
+    call gbt_update
 
     ; -------- Wait for start button press ------
     FetchJoypadState
@@ -113,11 +115,11 @@ Start:
     ; -------- Load story 1 ---------
     LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001
 
+.story1
+
     ; -------- Wait for sound ------
     halt
     call gbt_update
-
-.story1
 
     ; -------- Wait for A button press ------
     FetchJoypadState
@@ -128,11 +130,11 @@ Start:
     ; -------- Load story 2 ---------
     LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001
 
+.story2
+
     ; -------- Wait for sound ------
     halt
     call gbt_update
-
-.story2
 
     ; -------- Wait for A button press ------
     FetchJoypadState
@@ -143,17 +145,19 @@ Start:
     ; -------- Load story 3 ---------
     LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001
 
+.story3
+
     ; -------- Wait for sound ------
     halt
     call gbt_update
-
-.story3
 
     ; -------- Wait for A button press ------
     FetchJoypadState
     and PADF_A  ; If A then set NZ flag
 
     jr z, .story3     ; If not A then loop
+
+; -------- Start of game code ---------
 
     ; -------- Wipe all data from VRAM ---------
     WipeVRAM %10010001
@@ -169,18 +173,14 @@ Start:
     ; -------- Set screen enable settings ---------
     SwitchScreenOn %10010001
 
-    ; -------- Wait for sound ------
-    halt
-    call gbt_update
-
 ; -------- Top of game loop ---------
 .loop
 
-    jp .loop             ; Jump to the top of the game loop
-
     ; -------- Wait for sound ------
     halt
     call gbt_update
+
+    jp .loop             ; Jump to the top of the game loop
 
 ; -------- END Main Loop --------
 

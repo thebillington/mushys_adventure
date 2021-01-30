@@ -50,62 +50,6 @@ Spr_getAttr: MACRO
     _Spr_get
 ENDM
 
-; Loads HL with specified sprite Y memory location & preserves registers
-Spr_getY_P: MACRO
-    push af             ; Preserve AF register
-    push bc             ; Preserve BC register
-
-    ld hl, OAMDATALOC   ; Load HL with pointer to RAM sprite sheet
-    ld a, \1            ; Load A with sprite parameter
-
-    _Spr_get
-
-    pop bc              ; Restore BC register
-    pop af              ; Restore AF register
-ENDM
-
-; Loads HL with specified sprite X memory location & preserves registers
-Spr_getX_P: MACRO
-    push af                 ; Preserve AF register
-    push bc                 ; Preserve BC register
-
-    ld hl, (OAMDATALOC + 1) ; Load HL with pointer to (RAM sprite sheet + X offset)
-    ld a, \1                ; Load A with sprite parameter
-
-    _Spr_get
-
-    pop bc                  ; Restore BC register
-    pop af                  ; Restore AF register
-ENDM
-
-; Loads HL with specified sprite Tile memory location & preserves registers
-Spr_getTile_P: MACRO
-    push af                 ; Preserve AF register
-    push bc                 ; Preserve BC register
-
-    ld hl, (OAMDATALOC + 2) ; Load HL with pointer to (RAM sprite sheet + Tile offset)
-    ld a, \1                ; Load A with sprite parameter
-
-    _Spr_get
-
-    pop bc                  ; Restore BC register
-    pop af                  ; Restore AF register
-ENDM
-
-; Loads HL with specified sprite Attribute memory location & preserves registers
-Spr_getAttr_P: MACRO
-    push af                 ; Preserve AF register
-    push bc                 ; Preserve BC register
-
-    ld hl, (OAMDATALOC + 3) ; Load HL with pointer to (RAM sprite sheet + Attribute offset)
-    ld a, \1                ; Load A with sprite parameter
-
-    _Spr_get
-
-    pop bc                  ; Restore BC register
-    pop af                  ; Restore AF register
-ENDM
-
 ; Writes 0s to RAM
 ClearRAM: MACRO
 
@@ -122,19 +66,8 @@ ClearRAM: MACRO
     jr nz, .clearRAMLoop\@  ; If result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Writes 0s to RAM & preserves registers
-ClearRAM_P: MACRO
-    push hl     ; Preserve HL register
-    push bc     ; Preserve BC register
-
-    ClearRAM    ; ClearRAM MACRO
-
-    pop bc      ; Restore BC register
-    pop hl      ; Restore HL register
-ENDM
-
 ; Writes 0s to BG tile data & map
-ClearScreen: MACRO
+ClearScreenFast: MACRO
 
     ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
     ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
@@ -152,14 +85,15 @@ ClearScreen: MACRO
     jr nz, .clearScreenLoop\@   ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Writes 0s to tile maps
-ClearTileMap: MACRO
-    WaitVBlank
-    ld hl, _VRAM                ; Load HL with pointer to the tile data
-    ld de, $00                  ; Load DE with 0 (all empty tiles)
-    ld bc, _SCRN0 - _VRAM       ; Load BC with length of tile data
+; Writes 0s to BG tile data & map waiting for VBlank
+ClearScreenSlow: MACRO
 
-.clearTileMapLoop\@
+    ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
+    ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
+    ld bc, _VRAM_END - _SCRN0   ; Load BC with length of BG tile data + BG tile map banks
+
+.clearScreenLoop\@
+    WaitVBlank
     ld a, d                     ; Load A with 8 MSBs of _BG_MAP
     ld [hl], a                  ; Load BG tile data with A
     ld a, e                     ; Load A with 8 LSBs of _BG_MAP
@@ -168,28 +102,15 @@ ClearTileMap: MACRO
     dec bc                      ; Decrement length of banks (count)
     ld a, c                     ; Load A with 8 LSBs of count
     or b                        ; OR count 8 LSBs with its 8 MSBs
-    jr nz, .clearTileMapLoop\@   ; If the result is not zero (BC ~= 0), continue loop
-ENDM
-
-; Writes 0s to BG tile data & map & preserves registers
-ClearScreen_P: MACRO
-    push hl     ; Preserve HL register
-    push de     ; Preserve DE register
-    push bc     ; Preserve BC register
-
-    ClearScreen ; ClearScreen MACRO
-
-    pop bc      ; Restore BC register
-    pop de      ; Restore DE register
-    pop hl      ; Restore HL register
+    jr nz, .clearScreenLoop\@   ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
 ; Copys data from src address to dst address
-CopyData: MACRO
+CopyDataFast: MACRO
 
     ld hl, \1               ; Load HL with pointer to dst address
     ld de, \2               ; Load DE with pointer to the start of src data
-    ld bc, \3 - \2          ; Load BC with length of src data
+    ld bc, \3 - \2          ; Load BC with pointer to the end of src data
 
 .copyDataLoop\@
     ld a, [de]              ; Load src data into A
@@ -201,41 +122,60 @@ CopyData: MACRO
     jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Copys data from src address to dst address
-CopyTileMap: MACRO
+; Copys data from src address to dst address waiting for VBlank
+CopyDataSlow: MACRO
 
     ld hl, \1               ; Load HL with pointer to dst address
     ld de, \2               ; Load DE with pointer to the start of src data
-    ld bc, \3 - \2          ; Load BC with length of src data
+    ld bc, \3 - \2          ; Load BC with pointer to the end of src data
 
-.copyTileMapLoop\@
-    WaitVBlank
+.copyDataLoop\@
+    WaitVBlank              ; Halts CPU until interrupt triggers
     ld a, [de]              ; Load src data into A
     ld [hli], a             ; Load A into dst address and move to next address
     inc de                  ; Move to next src data address
     dec bc                  ; Decrement length of src data (count)
     ld a, b                 ; Load A with 8 LSBs of count
     or c                    ; OR count 8 LSBs with its 8 MSBs
-    jr nz, .copyTileMapLoop\@  ; If the result is not zero (BC ~= 0), continue loop
+    jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Copys data from src address to dst address & preserves registers
-CopyData_P: MACRO
-    push hl     ; Preserve HL register
-    push de     ; Preserve DE register
-    push bc     ; Preserve BC register
+; Wait for VBLANK
+WaitVBlank: MACRO
 
-    CopyData    ; CopyData MACRO
+.waitVBlank\@
+    ld a, [rLY]             ; Load LCDC Y-Coordinate into A
+    cp a, SCRN_Y            ; rLY - SCRN_Y
+    jr c, .waitVBlank\@     ; if rLY < SCRN_Y then jump to .waitVBlank
+ENDM
 
-    pop bc      ; Restore BC register
-    pop de      ; Restore DE register
-    pop hl      ; Restore HL register
+; Read hardware inputes ans store all in A
+ReadHWInput: MACRO
+
+    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    swap a          ; Move the lower 4 bits to the upper 4 bits
+    ld b, a         ; Save the buttons states to b
+
+    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    or b            ; Combine with the button states
 ENDM
 
 ; Loads the tile data into the correct positions for a level
 LoadLevel: MACRO
-
-    WaitVBlank
 
     ; Load the VRAM location for the tile to map into HL
     ld hl, \1       ; Load the start of the level data into HL
@@ -257,7 +197,6 @@ LoadLevel: MACRO
     ld a, e
     ld l, a         ; Move DE (the VRAM location of the tile) into HL
 
-    WaitVBlank      ; WAIT FOR VBLANK BEFORE WRITING TO VRAM (woops)
     pop af          ; Retrieve our tile number
     ld [hl], a      ; Move the tile number into the memory location pointed to by HL
 
@@ -268,13 +207,4 @@ LoadLevel: MACRO
     ld a, c
     or b
     jr nz, .loadLevelLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
-ENDM
-
-; Waits for VBLANK before commiting any memory to VRAM
-WaitVBlank: MACRO
-
-.waitVBlank\@
-    ld a, [rLY]             ; Load LCDC Y-Coordinate into A
-    cp a, SCRN_Y            ; rLY - SCRN_Y
-    jr c, .waitVBlank\@     ; if rLY < SCRN_Y then jump to .waitVBlank
 ENDM

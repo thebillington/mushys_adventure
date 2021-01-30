@@ -8,6 +8,9 @@ INCLUDE "tiles.asm"
 ; -------- INCLUDE LEVELS --------
 INCLUDE "level.asm"
 
+; -------- INCLUDE SPLASH SCREEN --------
+INCLUDE "images/splash.asm"
+
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
 
@@ -16,7 +19,6 @@ INCLUDE "level.asm"
 ; (VRAM) is only available during VBLANK. So this is when updating OAM /
 ; sprites is executed.
 SECTION "VBlank", ROM0[$0040]
-    ;reti
     jp _HRAM    ; Jump to the start of DMA Routine
 
 ; LCDC interrupts are LCD-specific interrupts (not including vblank) such as
@@ -80,11 +82,8 @@ Start:
     ; -------- Clear the screen ---------
     ClearScreen
 
-    ; -------- Clear the tile map ---------
-    ClearTileMap
-
-    ; -------- Load images into VRAM ------
-    CopyData _VRAM, TILES, TILESEND
+    ; -------- Load splash screen tile data ------
+    CopyData _VRAM, mushysplash_tile_data, mushysplash_tile_data_end
 
     ; ------- Load colour pallet ----------
     ld a, %11100100
@@ -117,6 +116,47 @@ Start:
     ; Bit 0 - BG/Window Display/Priority
     ld a, %10010001
     ld [rLCDC], a
+
+    ; -------- Load splash screen tile map ------
+    CopyTileMap _SCRN0, mushysplash_map_data, mushysplash_map_data_end
+
+.splash
+
+    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    swap a          ; Move the lower 4 bits to the upper 4 bits
+    ld b, a         ; Save the buttons states to b
+
+    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    or b            ; Combine with the button states
+
+    and PADF_START  ; If start then set NZ flag
+
+    jr z, .splash     ; If not start then loop
+
+; -------- START GAME --------
+
+    ; -------- Clear screen ------
+    ClearScreen
+
+    ; -------- Clear tiles ------
+    ClearTileMap
+
+    ; -------- Load images into VRAM ------
+    CopyTileMap _VRAM, TILES, TILESEND
 
     ; -------- Set screen enable settings ---------
     LoadLevel LEVEL, LEVELEND

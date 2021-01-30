@@ -124,9 +124,6 @@ Start:
     halt
     call gbt_update
 
-; -------- Checks whether button is still being pressed ------
-    JpIfButtonHeld PADF_A, .story1      ; waits until button isn't being pressed
-
 ; -------- Wait for A button press ------
     FetchJoypadState            ; FetchJoypadState MACRO
     and PADF_A                  ; If A then set NZ flag

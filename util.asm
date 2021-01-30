@@ -327,21 +327,13 @@ JpIfButtonHeld: MACRO
     AND \1                      ; apply button mask
     ld b, a                     ; Load current state into b
 
+    push bc
     FetchJoypadState            ; Check for button press
     AND \1                      ; apply button mask
+
+    pop bc
 
     xor b                       ; Compare stored state vs current state
 
     jp z, \2    ; if not 0 jump to passed label
-ENDM
-
-; -------- Wait before button can be pressed ---------
-WaitBeforeButtonPress: MACRO
-
-ld a, $20                   ; Load value 32
-
-.waitLoop\@
-    dec a                   ; decreases a by one
-
-    jp nz, .waitLoop\@       ; loop if not 0
 ENDM

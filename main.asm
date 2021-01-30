@@ -1,11 +1,11 @@
 INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
-INCLUDE "gbt_player.inc"
+;INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
 INClUDE "player_util.asm"
 INCLUDE "dma.asm"
 
-EXPORT  song_data
+;EXPORT  song_data
 
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"
@@ -115,9 +115,9 @@ Start:
     ld [rSCY], a        ; Load BG scroll X with A
 
 ;  -------- GBT_Player Setup --------
-    ld de, song_data
-    ld bc, BANK(song_data)
-    ld a, $05
+    ;ld de, song_data
+    ;ld bc, BANK(song_data)
+    ;ld a, $05
     ;call gbt_play
     ;call gbt_loop
 
@@ -181,6 +181,7 @@ Start:
     CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND
 
 ; -------- Load level ---------
+    LoadFloor
     LoadLevel
 
 ; ------- Init player sprite into OAM -------

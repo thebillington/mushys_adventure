@@ -219,6 +219,62 @@ LoadLevelColumn: MACRO
     jr nz, .loadColumnLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
 ENDM
 
+; Loads level data pointers into RAM and fills all 32 columns with the correct sprite tile
+LoadFloor: MACRO
+
+    ld hl, COLUMN_LOAD_COUNTER          
+    ld [hl], $20
+
+    ld hl, COLUMN_OFFSET_X
+    ld [hl], $0
+
+.floorLoop\@
+    ld de, $99E0
+
+    ld a, [COLUMN_OFFSET_X]
+    add e
+    ld e, a
+
+    LoadFloorColumn
+
+    ld a, [COLUMN_OFFSET_X]
+    inc a
+    ld hl, COLUMN_OFFSET_X
+    ld [hl], a
+
+    ld a, [COLUMN_LOAD_COUNTER]
+    sub a, $01
+    ld hl, COLUMN_LOAD_COUNTER
+    ld [hl], a
+
+    jr nz, .floorLoop\@
+
+ENDM
+
+LoadFloorColumn: MACRO
+    
+    ; Before calling DE needs to hold the memory location of the tile in the top row of the floor for the next column to draw
+
+    ld hl, ROW_LOAD_COUNTER          
+    ld [hl], $03
+
+.floorColumnLoop\@
+
+    ld h, d
+    ld l, e
+    ld [hl], $02
+
+    inc bc
+    AddSixteenBitDE $20
+
+    ld a, [ROW_LOAD_COUNTER]
+    sub a, $01
+    ld hl, ROW_LOAD_COUNTER
+    ld [hl], a
+
+    jr nz, .floorColumnLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
+ENDM
+
 ; Modulus method
 MOD: MACRO
 

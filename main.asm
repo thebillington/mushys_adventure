@@ -12,6 +12,9 @@ INCLUDE "level.asm"
 
 ; -------- INCLUDE SPLASH SCREEN --------
 INCLUDE "images/splash.asm"
+INCLUDE "images/storyOne.asm"
+INCLUDE "images/storyTwo.asm"
+INCLUDE "images/storyThree.asm"
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
@@ -76,15 +79,9 @@ Start:
 
 ; -------- Initial Configuration --------
 
-; -------- Turn screen off ------
-    xor a           ; (ld A, 0)
-    ld [rLCDC], a   ; Load A into LCDC register
-
-; -------- Clear the screen ---------
-    ClearScreenFast     ; ClearScreenFast MACRO
-
-; -------- Load splash screen tile data ------
-    CopyDataFast _VRAM, mushysplash_tile_data, mushysplash_tile_data_end    ; CopyDataFast MACRO
+    ; -------- Clear the screen ---------
+    ClearScreen
+    ClearTileMap
 
 ; ------- Load colour pallet ----------
     ld a, %11100100     ; Load A with colour pallet settings
@@ -102,60 +99,88 @@ Start:
     ld a, $05
     call gbt_play
 
-; -------- Turn screen on ---------
-    xor a               ; (ld a, 0)
-    or LCDCF_ON         ; Set LCD enabled bit in A
-    or LCDCF_BGON       ; Set BG enabled bit in A
-    or LCDCF_BG8000     ; Set BG Tile Data Set bit in A
-    ld [rLCDC], a       ; Load LCDC with A (settings)
+    ; -------- Load splash screen ---------
+    LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001
 
-; -------- Load splash screen tile map ------
-    CopyDataSlow _SCRN0, mushysplash_map_data, mushysplash_map_data_end     ; CopyDataSlow MACRO
+.splash
 
-; -------- END Initial Configuration --------
+    ; -------- Wait for start button press ------
+    FetchJoypadState
+    and PADF_START  ; If start then set NZ flag
 
-; -------- Main Loop --------
+    jr z, .splash     ; If not start then loop
 
-.splash_screen
-; -------- Sound stuff ------
+    ; -------- Load story 1 ---------
+    LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001
+
+    ; -------- Wait for sound ------
     halt
     call gbt_update
 
-; -------- Read hardware inputs ------
-    ReadHWInput             ; ReadHWInput MACRO
-    and PADF_START          ; If start then set NZ flag
+.story1
 
-    jr z, .splash_screen    ; If not start then loop
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
 
-; -------- Game loop setup --------
+    jr z, .story1     ; If not A then loop
 
-; -------- Turn screen off ------
-    xor a           ; (ld A, 0)
-    ld [rLCDC], a   ; Load A into LCDC register
+    ; -------- Load story 2 ---------
+    LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001
 
-; -------- Clear screen ------
-    ClearScreenFast     ; ClearScreenFast MACRO
+    ; -------- Wait for sound ------
+    halt
+    call gbt_update
 
-; -------- Load images into VRAM ------
-    CopyDataFast _VRAM, TILES, TILESEND     ; CopyDataFast MACRO
+.story2
 
-; -------- Set screen enable settings ---------
-    LoadLevel LEVEL, LEVELEND   ; LoadLevel MACRO
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
 
-; -------- Turn screen on ---------
-    xor a               ; (ld a, 0)
-    or LCDCF_ON         ; Set LCD enabled bit in A
-    or LCDCF_BGON       ; Set BG enabled bit in A
-    or LCDCF_BG8000     ; Set BG Tile Data Set bit in A
-    ld [rLCDC], a       ; Load LCDC with A (settings)
+    jr z, .story2     ; If not A then loop
+
+    ; -------- Load story 3 ---------
+    LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001
+
+    ; -------- Wait for sound ------
+    halt
+    call gbt_update
+
+.story3
+
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
+
+    jr z, .story3     ; If not A then loop
+
+    ; -------- Wipe all data from VRAM ---------
+    WipeVRAM %10010001
+
+    SwitchScreenOff
+
+    ; -------- Load images into VRAM ------
+    CopyData _VRAM, TILES, TILESEND
+
+    ; -------- Set screen enable settings ---------
+    LoadLevel LEVEL, LEVELEND
+    
+    ; -------- Set screen enable settings ---------
+    SwitchScreenOn %10010001
+
+    ; -------- Wait for sound ------
+    halt
+    call gbt_update
 
 ; -------- Top of game loop ---------
 .loop
-    ; -------- Sound stuff ------
-    halt
-    call gbt_update
 
     jp .loop             ; Jump to the top of the game loop
+
+    ; -------- Wait for sound ------
+    halt
+    call gbt_update
 
 ; -------- END Main Loop --------
 

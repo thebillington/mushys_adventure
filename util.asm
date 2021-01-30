@@ -67,7 +67,7 @@ ClearRAM: MACRO
 ENDM
 
 ; Writes 0s to BG tile data & map
-ClearScreenFast: MACRO
+ClearScreen: MACRO
 
     ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
     ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
@@ -85,8 +85,11 @@ ClearScreenFast: MACRO
     jr nz, .clearScreenLoop\@   ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Writes 0s to BG tile data & map waiting for VBlank
-ClearScreenSlow: MACRO
+; Writes 0s to tile maps
+ClearTileMap: MACRO
+    ld hl, _VRAM                ; Load HL with pointer to the tile data
+    ld de, $00                  ; Load DE with 0 (all empty tiles)
+    ld bc, _SCRN0 - _VRAM       ; Load BC with length of tile data
 
     ld hl, _SCRN0               ; Load HL with pointer to the BG tile data
     ld de, _BG_MAP              ; Load DE with pointer to the BG tile map
@@ -106,7 +109,7 @@ ClearScreenSlow: MACRO
 ENDM
 
 ; Copys data from src address to dst address
-CopyDataFast: MACRO
+CopyData: MACRO
 
     ld hl, \1               ; Load HL with pointer to dst address
     ld de, \2               ; Load DE with pointer to the start of src data
@@ -122,56 +125,16 @@ CopyDataFast: MACRO
     jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
 ENDM
 
-; Copys data from src address to dst address waiting for VBlank
-CopyDataSlow: MACRO
-
-    ld hl, \1               ; Load HL with pointer to dst address
-    ld de, \2               ; Load DE with pointer to the start of src data
-    ld bc, \3 - \2          ; Load BC with pointer to the end of src data
-
-.copyDataLoop\@
-    WaitVBlank              ; Halts CPU until interrupt triggers
-    ld a, [de]              ; Load src data into A
-    ld [hli], a             ; Load A into dst address and move to next address
-    inc de                  ; Move to next src data address
-    dec bc                  ; Decrement length of src data (count)
-    ld a, b                 ; Load A with 8 LSBs of count
-    or c                    ; OR count 8 LSBs with its 8 MSBs
-    jr nz, .copyDataLoop\@  ; If the result is not zero (BC ~= 0), continue loop
-ENDM
-
-; Wait for VBLANK
-WaitVBlank: MACRO
+; Copys data from src address to dst address & preserves registers
+CopyData_P: MACRO
+    push hl     ; Preserve HL register
+    push de     ; Preserve DE register
+    push bc     ; Preserve BC register
 
 .waitVBlank\@
     ld a, [rLY]             ; Load LCDC Y-Coordinate into A
     cp a, SCRN_Y            ; rLY - SCRN_Y
     jr c, .waitVBlank\@     ; if rLY < SCRN_Y then jump to .waitVBlank
-ENDM
-
-; Read hardware inputes ans store all in A
-ReadHWInput: MACRO
-
-    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
-    ld [_HW], a     ; Pull bit 4 low
-    ld a, [_HW]     ; Read the value of the inputs
-    ld a, [_HW]     ; Read again to avoid debounce
-
-    cpl             ; (A = ~A)
-    and $0F         ; Remove top 4 bits
-
-    swap a          ; Move the lower 4 bits to the upper 4 bits
-    ld b, a         ; Save the buttons states to b
-
-    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
-    ld [_HW], a     ; Pull bit 4 low
-    ld a, [_HW]     ; Read the value of the inputs
-    ld a, [_HW]     ; Read again to avoid debounce
-
-    cpl             ; (A = ~A)
-    and $0F         ; Remove top 4 bits
-
-    or b            ; Combine with the button states
 ENDM
 
 ; Loads the tile data into the correct positions for a level
@@ -207,4 +170,97 @@ LoadLevel: MACRO
     ld a, c
     or b
     jr nz, .loadLevelLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
+ENDM
+
+; Waits for VBLANK before commiting any memory to VRAM
+WaitVBlank: MACRO
+
+.waitVBlank\@
+    ld a, [rLY]             ; Load LCDC Y-Coordinate into A
+    cp a, SCRN_Y            ; rLY - SCRN_Y
+    jr c, .waitVBlank\@     ; if rLY < SCRN_Y then jump to .waitVBlank
+ENDM
+
+; Gets the joypad state
+FetchJoypadState: MACRO
+
+    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    swap a          ; Move the lower 4 bits to the upper 4 bits
+    ld b, a         ; Save the buttons states to b
+
+    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
+    ld [_HW], a     ; Pull bit 4 low
+    ld a, [_HW]     ; Read the value of the inputs
+    ld a, [_HW]     ; Read again to avoid debounce
+
+    cpl             ; (A = ~A)
+    and $0F         ; Remove top 4 bits
+
+    or b            ; Combine with the button states
+
+ENDM
+
+; Load an image file
+LoadImage: MACRO
+
+    SwitchScreenOff
+
+    ; -------- Load splash screen tile data ------
+    CopyData _VRAM, \1, \2
+
+    ; -------- Load splash screen tile map ------
+    CopyData _SCRN0, \3, \4
+    
+    ; -------- Set screen enable settings ---------
+    SwitchScreenOn \5
+
+ENDM
+
+; Wipe VRAM
+WipeVRAM: MACRO
+
+    SwitchScreenOff
+
+    ; -------- Clear screen ------
+    ClearScreen
+    
+    ; -------- Set screen enable settings ---------
+    SwitchScreenOn \1
+
+    ; -------- Clear tiles ------
+    ClearTileMap
+
+ENDM
+
+; Switch screen off
+SwitchScreenOn: MACRO
+    
+    ; -------- Set screen enable settings ---------
+    ; Bit 7 - LCD Display Enable
+    ; Bit 6 - Window Tile Map Display Select
+    ; Bit 5 - Window Display Enable
+    ; Bit 4 - BG & Window Tile Data Select
+    ; Bit 3 - BG Tile Map Display Select
+    ; Bit 2 - OBJ (Sprite) Size
+    ; Bit 1 - OBJ (Sprite) Display Enable
+    ; Bit 0 - BG/Window Display/Priority
+    ld a, \1
+    ld [rLCDC], a
+
+ENDM
+
+; Switch screen off
+SwitchScreenOff: MACRO
+
+    ; -------- Switch screen off ---------
+    xor a ; (ld a, 0)
+    ld [rLCDC], a
+
 ENDM

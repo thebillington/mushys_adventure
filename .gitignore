@@ -1,4 +1,5 @@
 *.gb
 *.o
 *.sym
+*.map
 .DS_Store

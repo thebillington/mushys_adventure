@@ -1,6 +1,9 @@
 INCLUDE "hardware.inc"
+INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
 INCLUDE "dma.asm"
+
+EXPORT  song_data
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
@@ -40,14 +43,14 @@ EntryPoint:
     di          ; Disable interrupts
     jp Start    ; Jump to code start
 
-; RGBASM will fix this later
+; RGBFIX will fix this later
 rept $150 - $104
     db 0
 endr
 
 ; -------- MAIN --------
 
-SECTION "Game Code", ROM0
+SECTION "Game Code", ROM0[$0150]
 
 Start:
     ld SP, $FFFF        ; Set stack pointer to the top of HRAM
@@ -97,8 +100,17 @@ Start:
     or LCDCF_OBJON
     ld [rLCDC], a
 
+;  -------- GBT_Player Setup --------
+    ld de, song_data
+    ld bc, BANK(song_data)
+    ld a, $05
+    call gbt_play
+;  -------- GBT_Player Setup END --------
+
 ; -------- Top of game loop ---------
 .loop
+    halt
+    call gbt_update
     jp .loop             ; Jump to the top of the game loop
 
 ; -------- Lock up the CPU ---------

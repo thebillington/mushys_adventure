@@ -80,15 +80,9 @@ Start:
 
 ; -------- Initial Configuration --------
 
-    ; -------- Init LCDC register ---------
-    xor a ; (ld a, 0)
-    ld [rLCDC], a
-
     ; -------- Clear the screen ---------
     ClearScreen
-
-    ; -------- Load splash screen tile data ------
-    CopyData _VRAM, mushystory3_tile_data, mushystory3_tile_data_end
+    ClearTileMap
 
     ; ------- Load colour pallet ----------
     ld a, %11100100
@@ -105,14 +99,66 @@ Start:
     ld bc, BANK(song_data)
     ld a, $05
     call gbt_play
-    ;  -------- GBT_Player Setup END --------
 
-    ; -------- Turn screen back on ---------
-    xor a
-    or LCDCF_ON
-    or LCDCF_BGON
-    or LCDCF_OBJ8
-    or LCDCF_OBJON
+    ; -------- Load splash screen ---------
+    LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001
+
+.splash
+    ; -------- Sound stuff ------
+    halt
+    call gbt_update
+
+    ; -------- Wait for start button press ------
+    FetchJoypadState
+    and PADF_START  ; If start then set NZ flag
+
+    jr z, .splash     ; If not start then loop
+
+    ; -------- Load story 1 ---------
+    LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001
+
+.story1
+
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
+
+    jr z, .story1     ; If not A then loop
+
+    ; -------- Load story 2 ---------
+    LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001
+
+.story2
+
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
+
+    jr z, .story2     ; If not A then loop
+
+    ; -------- Load story 3 ---------
+    LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001
+
+.story3
+
+    ; -------- Wait for A button press ------
+    FetchJoypadState
+    and PADF_A  ; If A then set NZ flag
+
+    jr z, .story3     ; If not A then loop
+
+; -------- START GAME --------
+
+    ; -------- Wipe all data from VRAM ---------
+    WipeVRAM %10010001
+
+    SwitchScreenOff
+
+    ; -------- Load images into VRAM ------
+    CopyData _VRAM, TILES, TILESEND
+
+    ; -------- Set screen enable settings ---------
+    LoadLevel LEVEL, LEVELEND
     
     ; -------- Set screen enable settings ---------
     ; Bit 7 - LCD Display Enable
@@ -125,53 +171,6 @@ Start:
     ; Bit 0 - BG/Window Display/Priority
     ld a, %10010001
     ld [rLCDC], a
-
-    ; -------- Load splash screen tile map ------
-    CopyTileMap _SCRN0, mushystory3_map_data, mushystory3_map_data_end
-
-.splash
-    ; -------- Sound stuff ------
-    halt
-    call gbt_update
-
-    ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
-    ld [_HW], a     ; Pull bit 4 low
-    ld a, [_HW]     ; Read the value of the inputs
-    ld a, [_HW]     ; Read again to avoid debounce
-
-    cpl             ; (A = ~A)
-    and $0F         ; Remove top 4 bits
-
-    swap a          ; Move the lower 4 bits to the upper 4 bits
-    ld b, a         ; Save the buttons states to b
-
-    ld a, $10       ; Mask to pull bit 4 low (read the buttons pad)     #TODO: Replace hard coded value with EQU
-    ld [_HW], a     ; Pull bit 4 low
-    ld a, [_HW]     ; Read the value of the inputs
-    ld a, [_HW]     ; Read again to avoid debounce
-
-    cpl             ; (A = ~A)
-    and $0F         ; Remove top 4 bits
-
-    or b            ; Combine with the button states
-
-    and PADF_START  ; If start then set NZ flag
-
-    jr z, .splash     ; If not start then loop
-
-; -------- START GAME --------
-
-    ; -------- Clear screen ------
-    ClearScreen
-
-    ; -------- Clear tiles ------
-    ClearTileMap
-
-    ; -------- Load images into VRAM ------
-    CopyTileMap _VRAM, TILES, TILESEND
-
-    ; -------- Set screen enable settings ---------
-    LoadLevel LEVEL, LEVELEND
 
 ; -------- Top of game loop ---------
 .loop

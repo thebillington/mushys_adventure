@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "memory_map.inc"
 INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
 INCLUDE "dma.asm"
@@ -169,8 +170,8 @@ Start:
 ; -------- Load images into VRAM ------
     CopyData _VRAM, TILES, TILESEND     ; CopyData MACRO
 
-; -------- Set screen enable settings ---------
-    LoadLevel LEVEL, LEVELEND           ; LoadLevel MACRO
+; -------- Load level ---------
+    LoadLevel
     
 ; -------- Set screen enable settings ---------
     SwitchScreenOn %10010001            ; SwitchScreenOn MACRO

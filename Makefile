@@ -1,17 +1,20 @@
 main: link
 	@printf "Fixing main.gb...\n"
-	rgbfix -v -p 0xFF main.gb
+	rgbfix -v -m 0x19 -p 0xFF main.gb
 	@rm -f *.o
 	@printf "DONE\n\n"
 
 link: assemble
 	@printf "Linking main.o...\n"
-	rgblink -t -w -v -n main.sym -p 0xFF -o main.gb main.o
+	rgblink -v -w -n main.sym -m main.map -p 0xFF -o main.gb main.o gbt_player.o gbt_player_bank1.o song.o
 	@printf "DONE\n\n"
 
 assemble: main.asm
-	@printf "Assembling main.asm...\n"
+	@printf "Assembling main.asm gbt_player.asm gbt_player_bank1.asm song.asm...\n"
 	rgbasm -v -o main.o main.asm
+	rgbasm -v -o gbt_player.o gbt_player.asm
+	rgbasm -v -o gbt_player_bank1.o gbt_player_bank1.asm
+	rgbasm -v -o song.o song.asm
 	@printf "DONE\n\n"
 
 clean:
@@ -19,4 +22,5 @@ clean:
 	@rm -f *.gb
 	@rm -f *.o
 	@rm -f *.sym
+	@rm -f *.map
 	@printf "DONE\n"

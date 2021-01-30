@@ -1,7 +1,9 @@
 INCLUDE "hardware.inc"
+INCLUDE "gbt_player.inc"
 INClUDE "util.asm"
 INCLUDE "dma.asm"
 
+EXPORT  song_data
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"
 
@@ -49,14 +51,14 @@ EntryPoint:
     di          ; Disable interrupts
     jp Start    ; Jump to code start
 
-; RGBASM will fix this later
+; RGBFIX will fix this later
 rept $150 - $104
     db 0
 endr
 
 ; -------- MAIN --------
 
-SECTION "Game Code", ROM0
+SECTION "Game Code", ROM0[$0150]
 
 Start:
     ld SP, $FFFF        ; Set stack pointer to the top of HRAM
@@ -95,8 +97,12 @@ Start:
     ld [rSCX], a
     ld [rSCY], a
 
-    ; -------- Turn off sound --------------
-    ld [rNR52], a
+    ;  -------- GBT_Player Setup --------
+    ld de, song_data
+    ld bc, BANK(song_data)
+    ld a, $05
+    call gbt_play
+    ;  -------- GBT_Player Setup END --------
 
     ; -------- Turn screen back on ---------
     xor a
@@ -121,6 +127,9 @@ Start:
     CopyTileMap _SCRN0, mushysplash_map_data, mushysplash_map_data_end
 
 .splash
+    ; -------- Sound stuff ------
+    halt
+    call gbt_update
 
     ld a, $20       ; Mask to pull bit 4 low (read the D pad)           #TODO: Replace hard coded value with EQU
     ld [_HW], a     ; Pull bit 4 low
@@ -163,6 +172,9 @@ Start:
 
 ; -------- Top of game loop ---------
 .loop
+    ; -------- Sound stuff ------
+    halt
+    call gbt_update
 
     jp .loop             ; Jump to the top of the game loop
 

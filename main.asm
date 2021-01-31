@@ -129,7 +129,8 @@ Start:
     LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .splash
-    ;jp .startGame
+    ; Comment/uncomment this to jump straight to game or display the splash screen and tutorial
+    jp .startGame
 
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
@@ -233,7 +234,7 @@ jp .restart
 
 ; -------- Lock up the CPU ---------
 .debug         
-    jr .debug      ; Should never be reached
+    jr .debug      ; Use to lock CPU for debugging
 
 ; -------- VBlank Interrupt Handler ---------
 VBHandler:

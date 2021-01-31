@@ -112,12 +112,6 @@ LoadLevel: MACRO
     ; Load bc with the value of the first tile of the first column of data
     ld bc, LEVEL
 
-    ; Store the location into RAM
-    ld hl, LEVEL_COLUMN_POINTER_LOW
-    ld [hl], b
-    ld hl, LEVEL_COLUMN_POINTER_HIGH
-    ld [hl], c
-
     ld hl, COLUMN_LOAD_COUNTER          
     ld [hl], $1C
 
@@ -180,21 +174,9 @@ AddSixteenBitHL: MACRO
 
 ENDM
 
-CalculateNextColumnToLoad: MACRO
-
-    ld a, [rSCX]                ; Load the screen x position
-
-    MOD a, $20                  ; Divide by 32 and get the remainder (what is the current leftmost visible tile)
-    ADD a, $1C                  ; Add 28 to get the offset
-    MOD a, $20                  ; Calculate the X offset for the next column to load (leftmost visible tile + 20 + 8)
-
-    ld [SCREEN_OFFSET_X], a     ; Store the value for the point at which we need to load the next tile
-
-ENDM
-
 LoadLevelColumn: MACRO
     
-    ; Before calling BC needs to hold the memory location holding the value of the next tile (LEVEL_COLUMN_POINTER_HIGH + lh hl, LEVEL_COLUMN_POINTER_LOW)
+    ; Before calling BC needs to hold the memory location holding the value of the next tile (LEVEL_COLUMN_POINTER_HIGH + LEVEL_COLUMN_POINTER_LOW)
     ; Before calling DE needs to hold the memory location of the tile in the top row of the next column to draw
 
     ld hl, ROW_LOAD_COUNTER          
@@ -216,6 +198,13 @@ LoadLevelColumn: MACRO
     ld [hl], a
 
     jr nz, .loadColumnLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
+
+    ; Store the location into RAM
+    ld hl, LEVEL_COLUMN_POINTER_LOW
+    ld [hl], b
+    ld hl, LEVEL_COLUMN_POINTER_HIGH
+    ld [hl], c
+
 ENDM
 
 ; Loads level data pointers into RAM and fills all 32 columns with the correct sprite tile

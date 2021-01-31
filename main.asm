@@ -121,10 +121,10 @@ Start:
 ; -------- Splash screen and story --------
 
 ; -------- Load splash screen ---------
-    LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .splash
-    jp .startGame
+    ; jp .startGame
 
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
@@ -133,7 +133,7 @@ Start:
     jr z, .splash       ; If not start then loop
 
 ; -------- Load story 1 ---------
-    LoadImageBanked mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .story1
 ; -------- Wait for A button press ------
@@ -143,7 +143,7 @@ Start:
     jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
-    LoadImageBanked mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .story2
 ; -------- Checks whether button is still being pressed ------
@@ -156,7 +156,7 @@ Start:
     jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
-    LoadImageBanked mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .story3
 ; -------- Checks whether button is still being pressed ------

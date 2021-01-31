@@ -1,27 +1,42 @@
-main: link
-	@printf "Fixing main.gb...\n"
-	rgbfix -v -m 0x19 -p 0xFF main.gb
-	@rm -f *.o
+NAME = main
+
+SRC = ./main.asm ./images/images.asm ./music/gbt_player.asm ./music/gbt_player_bank1.asm ./music/song.asm
+
+OBJS = $(SRC:.asm=.o)
+
+ASM = rgbasm
+LINK = rgblink
+FIX = rgbfix
+
+ASMFLAGS = -v -i ./music/ -i ./images/
+LINKFLAGS = -v -w -n $@.sym -m $@.map -p 0xFF
+FIXFLAGS = -v -m 0x19 -p 0xFF
+
+all: $(NAME)
+	@printf "Fixing $<.gb...\n"
+	$(FIX) $(FIXFLAGS) $<.gb
+	@rm -f ./*.o
+	@rm -f ./images/*.o
+	@rm -f ./music/*.o
 	@printf "DONE\n\n"
 
-link: assemble
-	@printf "Linking main.o...\n"
-	rgblink -v -w -n main.sym -m main.map -p 0xFF -o main.gb main.o gbt_player.o gbt_player_bank1.o song.o images.o
+$(NAME): $(OBJS)
+	@printf "Linking $(OBJS) to $@.gb...\n"
+	$(LINK) $(LINKFLAGS) -o $@.gb $(OBJS)
 	@printf "DONE\n\n"
 
-assemble: main.asm
-	@printf "Assembling main.asm gbt_player.asm gbt_player_bank1.asm song.asm...\n"
-	rgbasm -v -i ./music/ -i ./images/ -o main.o main.asm
-	rgbasm -v -i ./music/ -i ./images/ -o images.o ./images/images.asm
-	rgbasm -v -i ./music/ -i ./images/ -o gbt_player.o ./music/gbt_player.asm
-	rgbasm -v -i ./music/ -i ./images/ -o gbt_player_bank1.o ./music/gbt_player_bank1.asm
-	rgbasm -v -i ./music/ -i ./images/ -o song.o ./music/song.asm
+$(OBJS): $(SRC)
+	@printf "Assembling $*.asm to $@\n"
+	$(ASM) $(ASMFLAGS) -o $@ $*.asm
 	@printf "DONE\n\n"
 
 clean:
 	@printf "Cleaning work space...\n"
-	@rm -f *.gb
-	@rm -f *.o
-	@rm -f *.sym
-	@rm -f *.map
+	@rm -f ./*.gb
+	@rm -f ./*.sym
+	@rm -f ./*.map
+
+	@rm -f ./*.o
+	@rm -f ./images/*.o
+	@rm -f ./music/*.o
 	@printf "DONE\n"

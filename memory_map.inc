@@ -1,8 +1,6 @@
    IF !DEF(MEMORY_MAP_INC)
 MEMORY_MAP_INC SET 1
 
-; -------- OAM ------\
-
 ; Sprite VRAM map location
 _SPRITE_VRAM EQU _BLOCK2
 
@@ -11,8 +9,12 @@ PLAYER EQU $00
 
 ; -------- Usable RAM ------
 
+; -------- OAM ------\ ; Using the first 160 bytes of RAM as OAM
+
+; -------- GBT ------\ ; Next 128(67) bytes used by gbt_player
+
 ; 2 bytes to store the pointer to the level tile data (top tile of the next column)
-LEVEL_COLUMN_POINTER_LOW EQU _RAM + $A0
+LEVEL_COLUMN_POINTER_LOW EQU _RAM + $A0 + $80
 LEVEL_COLUMN_POINTER_HIGH EQU LEVEL_COLUMN_POINTER_LOW + $01
 
 ; A byte to store the x-offset of the next tile to load

@@ -23,6 +23,7 @@ UpdatePhysics: MACRO
 
     UpdatePlayerY                   ; Update the player y position every frame
     CheckFloorCollision             ; Check if the player has entered the floor
+    CheckPlatformCollision          ; Check if the player has entered a platform
 
     CheckGravity                    ; Apply gravity
 
@@ -272,5 +273,89 @@ LoadNextColumn: MACRO
     inc a
     ld hl, COLUMN_LOAD_OFFSET
     ld [hl], a
+
+ENDM
+
+CheckPlatformCollision: MACRO
+
+.collisionCheckLoop\@
+
+    CalculateTilePosition                           ; Load the memory location of the tile we are currently standing on
+
+    ld h, b
+    ld l, c
+    ld a, [hl]                                      ; Load the tile position data into a
+
+    sub $01                                         ; Subtract the tile position that has collision enabled (platforms are tile position $01)
+
+    jr nz, .endCheck\@                              ; If we didn't collide end the check
+
+    MovePlayerY 1                   ; Move the player up by 1
+    EnableJump                      ; Once we've hit the floor, let the player jump again
+
+    jp .collisionCheckLoop\@        ; Check again to see if we have resolved the collision
+
+.endCheck\@
+
+ENDM
+
+CalculateTilePosition: MACRO
+
+    Spr_getX $00
+    ld a, [hl]                                      ; Get the x position of the sprite bottom left tile
+    sub 8                                           ; Subtract 8 to account for the x offscreen tile position
+    DIVIDE a, 8                                     ; Divide by 8 to normalise to a tile position
+    ld d, a                                         ; Store in d
+
+    ld a, [COLUMN_LOAD_OFFSET]                      ; Load a with the total column offset (this tracks how far we have moved)
+    sub 29                                          ; Subtract 28 (normalise back to the start of the offset, instead of position 28 where we load new tiles)
+    add d                                           ; Add our x tile position to the total offset position
+    ld d, a
+
+    ld bc, LEVEL                                   ; Load BC with the start of the level data
+    
+    AND 1
+    jr z, .skipLoop\@
+
+; Add 13 to BC d times to give us the total rows offset (each row contains 13 pieces of tile data)
+    ld hl, GENERIC_ITERATOR
+    ld [hl], 0
+
+.addMultiple\@
+
+    AddSixteenBitBC 13                              ; Add our total tile offset to the level data
+
+    ld a, [GENERIC_ITERATOR]
+    inc a
+    ld hl, GENERIC_ITERATOR
+    ld [hl], a                                      ; Increment the multiplier iterator
+
+    sub d                                           ; Check if we have added A times
+
+    jr nz, .addMultiple\@                           ; Add d, subtract 1 from
+
+.skipLoop\@
+
+; Calculate the y offset within the column
+
+    ld d, b
+    ld e, c
+    Spr_getY $02
+    ld b, d
+    ld c, e
+
+    ld a, [hl]                                      ; Get the y position of the sprite bottom left tile
+    ld d, a                                         ; Store it in d
+
+    ld e, b
+
+    add 24                                          ; Subtract 16 to account for the y offscreen tile positions
+    DIVIDE a, 8                                     ; Divide by 8 to normalise to a tile position
+    sub 8                                           ; Subtract 8 because it works (not sure why but trust)
+
+    ld b, e
+    inc a
+    ld d, a
+    AddSixteenBitBC d                               ; Add the y position offset to the current column position
 
 ENDM

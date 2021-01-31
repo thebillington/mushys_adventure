@@ -1,11 +1,11 @@
 INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
-;INCLUDE "gbt_player.inc"
+INCLUDE "music/gbt_player.inc"
 INClUDE "util.asm"
 INClUDE "player_util.asm"
 INCLUDE "dma.asm"
 
-;EXPORT  song_data
+EXPORT  song_data
 
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"

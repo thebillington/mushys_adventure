@@ -16,7 +16,7 @@ assemble: main.asm
 	rgbasm -v -o main.o main.asm
 	#rgbasm -v -o gbt_player.o gbt_player.asm
 	#rgbasm -v -o gbt_player_bank1.o gbt_player_bank1.asm
-	rgbasm -v -o song.o song.asm
+	#rgbasm -v -o song.o song.asm
 	@printf "DONE\n\n"
 
 clean:

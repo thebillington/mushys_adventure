@@ -32,7 +32,7 @@ INCLUDE "images/storyThree.asm"
 ; (VRAM) is only available during VBLANK. So this is when updating OAM /
 ; sprites is executed.
 SECTION "VBlank", ROM0[$0040]
-    jp _HRAM    ; Jump to the start of DMA Routine
+    jp VBHandler
 
 ; LCDC interrupts are LCD-specific interrupts (not including vblank) such as
 ; interrupting when the gameboy draws a specific horizontal line on-screen
@@ -127,6 +127,8 @@ Start:
     LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
 
 .splash
+    WaitVBlankIF
+
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
     and PADF_START      ; If start then set NZ flag
@@ -202,6 +204,12 @@ Start:
 ; -------- Lock up the CPU ---------
 .debug         
     jr .debug      ; Should never be reached
+
+; -------- VBlank Interrupt Handler ---------
+VBHandler:
+    ld hl, INTR_STATE       ; Load INTR_STATE loc to hl
+    ld [hl], IEF_VBLANK     ; load IEF_VBLANK to INTR_STATE
+    jp _HRAM                ; Jump to the start of DMA Routine
 
 ; -------- Timer Interrupt Handler ---------
 TIHandler:

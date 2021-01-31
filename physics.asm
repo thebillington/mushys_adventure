@@ -12,6 +12,9 @@ InitialisePhysics: MACRO
     ld hl, GRAVITY_TIMER
     ld [hl], 0                      ; Set gravity timer to zero
 
+    ld hl, COLUMN_LOAD_OFFSET
+    ld [hl], FIRST_COL_TO_LOAD      ; Load the location of the first column to load into memory when scrolling
+
 ENDM
 
 UpdatePhysics: MACRO
@@ -209,11 +212,11 @@ HorizontalBoundsRightCheck: MACRO
     sub b
 
 
-    jr nc, .endCheck\@
+    jp nc, .endCheck\@
 
     MovePlayerX -1
     ScrollMapX
-    jr .resolveOutOfBounds\@
+    jp .resolveOutOfBounds\@
 
 .endCheck\@  
 
@@ -225,5 +228,49 @@ ScrollMapX: MACRO
     inc a
     ld hl, rSCX
     ld [hl], a
+
+    CheckColumnLoad
+
+ENDM
+
+CheckColumnLoad: MACRO
+
+    ld a, [rSCX]
+    MOD a, $08
+    AND $FF                                         ; Load in the current screen X and check if we have just entered a new tile
+    
+    jr nz, .endCheck\@                              ; If we aren't in a new tile, end the check
+
+    LoadNextColumn
+
+.endCheck\@
+
+ENDM
+
+LoadNextColumn: MACRO
+
+    SwitchScreenOff
+    
+    ; Load bc with the value of the first tile of the first column of data
+    ld a, [LEVEL_COLUMN_POINTER_LOW]
+    ld b, a
+    ld a, [LEVEL_COLUMN_POINTER_HIGH]
+    ld c, a
+
+    ld de, $9840                                    ; Load de with the top left tile of our map (the first 2 rows don't have any tiles in)
+
+    ld a, [COLUMN_LOAD_OFFSET]
+    MOD a, $20
+    add e
+    ld e, a                                         ; Offset by the required column offset (this loads into the correct column)
+
+    LoadLevelColumn                                 ; Initiate the data load
+
+    ld a, [COLUMN_LOAD_OFFSET]
+    inc a
+    ld hl, COLUMN_LOAD_OFFSET
+    ld [hl], a
+
+    SwitchScreenOn %10010011
 
 ENDM

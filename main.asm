@@ -124,7 +124,7 @@ Start:
     LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImageBanked MACRO
 
 .splash
-    jp .startGame
+    ;jp .startGame
 
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO

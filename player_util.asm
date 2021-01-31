@@ -13,7 +13,6 @@ LoadPlayer: MACRO
     DIVIDE a, $02
     MULT $07
     add e
-    sub $08
 	ld [hl], a
     
     Spr_getX d

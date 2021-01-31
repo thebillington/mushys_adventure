@@ -26,6 +26,7 @@ UpdatePhysics: MACRO
     CheckForJump                    ; Check if the player is jumping
 
     CheckHorizontalMovement         ; Check if any of the horizontal D-Pad buttons are down
+    HorizontalBoundsCheck           ; 
 
 ENDM
 
@@ -168,6 +169,29 @@ CheckHorizontalMovement: MACRO
     jr z, .endCheck\@                      ; If left button isn't pressed, end check state
 
     MovePlayerX -1                         ; Move the player 1 to the left
+
+.endCheck\@
+
+ENDM
+
+HorizontalBoundsCheck: MACRO
+
+    HorizontalBoundsLeftCheck
+
+ENDM
+
+HorizontalBoundsLeftCheck: MACRO
+
+.resolveOutOfBounds\@
+
+    Spr_getX $00
+    ld a, [hl]
+    sub $08
+
+    jr nc, .endCheck\@
+
+    MovePlayerX 1
+    jr .resolveOutOfBounds\@
 
 .endCheck\@
 

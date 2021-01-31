@@ -25,6 +25,8 @@ UpdatePhysics: MACRO
 
     CheckForJump                    ; Check if the player is jumping
 
+    CheckHorizontalMovement         ; Check if any of the horizontal D-Pad buttons are down
+
 ENDM
 
 UpdatePlayerY: MACRO
@@ -130,7 +132,7 @@ ApplyGravity: MACRO
     jr c, .setTerminal\@                    ; If we are above terminal velocity, set Y_VEL to terminal velocity
 
 ; If we reached this point, we need to apply gravity
-    ld a, Y_VEL
+    ld a, [Y_VEL]
     add GRAVITY                             ; Load Y_VEL and apply gravity
 
     ld hl, Y_VEL
@@ -140,6 +142,29 @@ ApplyGravity: MACRO
 
     ld hl, Y_VEL
     ld [hl], 0 - TERMINAL_VEL               ; Set the value of Y_VEL to negative terminal velocity (we move down with gravity)
+
+.endCheck\@
+
+ENDM
+
+CheckHorizontalMovement: MACRO
+
+.rightPadCheck\@
+
+    ld a, [PREV_BTN_STATE]
+    AND PADF_RIGHT                          ; Load the pad state and apply right button mask
+
+    jr z, .leftPadCheck\@                   ; If right button isn't pressed, check for left button press
+
+    MovePlayerX 1                           ; Move the player one to the right
+
+    jr .endCheck\@                          ; If the right pad was checked, don't check the left pad
+
+.leftPadCheck\@
+
+    ld a, [PREV_BTN_STATE]
+    AND PADF_LEFT                          ; Load the pad state and apply left button mask
+
 
 .endCheck\@
 

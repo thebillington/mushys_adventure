@@ -68,3 +68,27 @@ MovePlayerY: MACRO
 .movePlayerYFallthrough\@
 
 ENDM
+
+MovePlayerX: MACRO
+
+    ld d, $00
+    ld e, \1
+
+.movePlayerXLoop\@
+
+    Spr_getX d
+    ld a, [hl]
+    add e                               ; Subtract the value so that we can treat positive numbers as up and negative as down
+	ld [hl], a
+
+    ld a, $03
+    sub d
+
+    jr z, .movePlayerXFallthrough\@
+
+    inc d
+    jr .movePlayerXLoop\@
+
+.movePlayerXFallthrough\@
+
+ENDM

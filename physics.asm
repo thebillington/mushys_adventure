@@ -23,7 +23,7 @@ UpdatePhysics: MACRO
 
     UpdatePlayerY                   ; Update the player y position every frame
     CheckFloorCollision             ; Check if the player has entered the floor
-    CheckPlatformCollision          ; Check if the player has entered a platform
+    CheckPlatformCollisions         ; Check if the player has entered a platform
 
     CheckGravity                    ; Apply gravity
 
@@ -276,24 +276,31 @@ LoadNextColumn: MACRO
 
 ENDM
 
-CheckPlatformCollision: MACRO
+CheckPlatformCollisions: MACRO
+
+    CheckPlaformCollisionForSprite $02
+    CheckPlaformCollisionForSprite $03
+
+ENDM
+
+CheckPlaformCollisionForSprite: MACRO
 
 .collisionCheckLoop\@
 
-    CalculateTilePosition                           ; Load the memory location of the tile we are currently standing on
+    CalculateTilePosition \1                        ; Load the memory location of the tile we are currently standing on
 
     ld h, b
-    ld l, c
-    ld a, [hl]                                      ; Load the tile position data into a
+    ld l, c                                         ; Move BC into hl
 
+    ld a, [hl]                                      ; Load the tile position data into a
     sub $01                                         ; Subtract the tile position that has collision enabled (platforms are tile position $01)
 
-    jr nz, .endCheck\@                              ; If we didn't collide end the check
+    jr nz, .endCheck\@                              ; If there is no collision, end the check
 
-    MovePlayerY 1                   ; Move the player up by 1
-    EnableJump                      ; Once we've hit the floor, let the player jump again
+    MovePlayerY 1                                   ; Move the player up by 1
+    EnableJump                                      ; Once we've hit the floor, let the player jump again
 
-    jp .collisionCheckLoop\@        ; Check again to see if we have resolved the collision
+    jp .collisionCheckLoop\@                        ; Check again to see if we have resolved the collision
 
 .endCheck\@
 
@@ -301,7 +308,7 @@ ENDM
 
 CalculateTilePosition: MACRO
 
-    Spr_getX $00
+    Spr_getX \1
     ld a, [hl]                                      ; Get the x position of the sprite bottom left tile
     sub 8                                           ; Subtract 8 to account for the x offscreen tile position
     DIVIDE a, 8                                     ; Divide by 8 to normalise to a tile position
@@ -340,7 +347,7 @@ CalculateTilePosition: MACRO
 
     ld d, b
     ld e, c
-    Spr_getY $02
+    Spr_getY \1
     ld b, d
     ld c, e
 

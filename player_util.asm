@@ -8,7 +8,7 @@ LoadPlayer: MACRO
 .loadPlayerSpritesLoop\@
 
     Spr_getY d
-    ld e, PLAYER_START_POS
+    ld e, PLAYER_START_POS_Y
     ld a, d
     DIVIDE a, $02
     MULT $07
@@ -17,12 +17,11 @@ LoadPlayer: MACRO
 	ld [hl], a
     
     Spr_getX d
-    ld e, $10
+    ld e, PLAYER_START_POS_X
     ld a, d
     MOD a, $02
     MULT $07
     add e
-    sub $08
 	ld [hl], a        
 
     Spr_getTile d
@@ -66,5 +65,29 @@ MovePlayerY: MACRO
     jr .movePlayerYLoop\@
 
 .movePlayerYFallthrough\@
+
+ENDM
+
+MovePlayerX: MACRO
+
+    ld d, $00
+    ld e, \1
+
+.movePlayerXLoop\@
+
+    Spr_getX d
+    ld a, [hl]
+    add e                               ; Subtract the value so that we can treat positive numbers as up and negative as down
+	ld [hl], a
+
+    ld a, $03
+    sub d
+
+    jr z, .movePlayerXFallthrough\@
+
+    inc d
+    jr .movePlayerXLoop\@
+
+.movePlayerXFallthrough\@
 
 ENDM

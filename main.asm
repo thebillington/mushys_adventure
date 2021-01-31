@@ -4,8 +4,10 @@ INCLUDE "music/gbt_player.inc"
 INCLUDE "images/images.inc"
 
 ; -------- INCLUDE UTILITIES --------
+INCLUDE "constants.asm"
 INClUDE "util.asm"
 INClUDE "player_util.asm"
+INClUDE "physics.asm"
 INCLUDE "dma.asm"
 
 ; -------- INCLUDE BACKGROUND TILES --------
@@ -122,7 +124,7 @@ Start:
     LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
 
 .splash
-    WaitVBlankIF
+    jp .startGame
 
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO
@@ -167,6 +169,7 @@ Start:
     jr z, .story3               ; If not A then loop
 
 ; -------- Start of game code ---------
+.startGame
 
 ; -------- Wipe all data from VRAM ---------
     SwitchScreenOff     ; SwitchScreenOff MACRO
@@ -184,15 +187,19 @@ Start:
 ; ------- Init player sprite into OAM -------
     LoadPlayer
 
+; ------- Init player sprite into OAM -------
+    InitialisePhysics
+
 ; -------- Set screen enable settings ---------
     SwitchScreenOn %10010011            ; SwitchScreenOn MACRO
 
 ; -------- START Main Loop ---------
 .loop
+    WaitVBlankIF        ; Wait for VBlank interrupt (this should get us running at ~60Hz)
 
+    UpdatePhysics       ; Perform a full physics update
 
-
-    jp .loop             ; Jump to the top of the game loop
+    jp .loop            ; Jump back to the top of the game loop
 
 ; -------- END Main Loop --------
 

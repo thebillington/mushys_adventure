@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "memory_map.inc"
 
 _RAM_END EQU $DFFF
 _VRAM_END EQU $9FF0

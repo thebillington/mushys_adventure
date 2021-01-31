@@ -177,6 +177,7 @@ ENDM
 HorizontalBoundsCheck: MACRO
 
     HorizontalBoundsLeftCheck
+    HorizontalBoundsRightCheck
 
 ENDM
 
@@ -194,5 +195,35 @@ HorizontalBoundsLeftCheck: MACRO
     jr .resolveOutOfBounds\@
 
 .endCheck\@
+
+ENDM
+
+HorizontalBoundsRightCheck: MACRO
+
+.resolveOutOfBounds\@
+
+    Spr_getX $00
+    ld a, [hl]
+    ld b, a
+    ld a, RIGHT_BOUND
+    sub b
+
+
+    jr nc, .endCheck\@
+
+    MovePlayerX -1
+    ScrollMapX
+    jr .resolveOutOfBounds\@
+
+.endCheck\@  
+
+ENDM
+
+ScrollMapX: MACRO
+
+    ld a, [rSCX]
+    inc a
+    ld hl, rSCX
+    ld [hl], a
 
 ENDM

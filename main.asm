@@ -21,6 +21,9 @@ INCLUDE "sprites/mushySmall.asm"
 ; -------- INCLUDE LEVELS --------
 INCLUDE "level.asm"
 
+; -------- INCLUDE CREDITS --------
+INCLUDE "credits.asm"
+
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
 
@@ -213,7 +216,7 @@ Start:
     ld[rSCX], a                         ; Reset screen scroll position
 
 ; -------- Load credits ---------
-    LoadImageBanked credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end, %10010001   ; LoadImageBanked MACRO
+    LoadImage credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end, %10010001   ; LoadImage MACRO
 
 .credits
 ; -------- Checks whether button is still being pressed ------

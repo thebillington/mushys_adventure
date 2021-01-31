@@ -165,6 +165,9 @@ CheckHorizontalMovement: MACRO
     ld a, [PREV_BTN_STATE]
     AND PADF_LEFT                          ; Load the pad state and apply left button mask
 
+    jr z, .endCheck\@                      ; If left button isn't pressed, end check state
+
+    MovePlayerX -1                         ; Move the player 1 to the left
 
 .endCheck\@
 

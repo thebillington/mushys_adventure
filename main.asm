@@ -235,10 +235,12 @@ jp .restart
 
 ; -------- VBlank Interrupt Handler ---------
 VBHandler:
-    push hl
+    push hl                 ; Preserve HL register
+
     ld hl, INTR_STATE       ; Load INTR_STATE loc to hl
     ld [hl], IEF_VBLANK     ; load IEF_VBLANK to INTR_STATE
-    pop hl
+
+    pop hl                  ; Restore HL register
 
     jp _HRAM                ; Jump to the start of DMA Routine
 

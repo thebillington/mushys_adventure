@@ -211,11 +211,13 @@ HorizontalBoundsRightCheck: MACRO
     ld a, RIGHT_BOUND
     sub b
 
-
     jp nc, .endCheck\@
 
     MovePlayerX -1
-    ScrollMapX
+
+    CheckEndLevel .endCheck\@                       ; Check if we are already at the end of the level
+    ScrollMapX                                      ; If not, scroll the map
+
     jp .resolveOutOfBounds\@
 
 .endCheck\@  
@@ -249,7 +251,7 @@ ENDM
 
 LoadNextColumn: MACRO
 
-    SwitchScreenOff
+    WaitVBlankIF
     
     ; Load bc with the value of the first tile of the first column of data
     ld a, [LEVEL_COLUMN_POINTER_LOW]
@@ -270,7 +272,5 @@ LoadNextColumn: MACRO
     inc a
     ld hl, COLUMN_LOAD_OFFSET
     ld [hl], a
-
-    SwitchScreenOn %10010011
 
 ENDM

@@ -28,4 +28,11 @@ IMAGES_INC SET 1
     EXPORT mushystory3_tile_data
     EXPORT mushystory3_tile_data_end
 
+
+    EXPORT credits_map_data
+    EXPORT credits_map_data_end
+
+    EXPORT credits_tile_data
+    EXPORT credits_tile_data_end
+
 ENDC

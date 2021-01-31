@@ -25,4 +25,7 @@ ROW_LOAD_COUNTER EQU COLUMN_LOAD_COUNTER + $01
 ; Store previous button state
 PREV_BTN_STATE EQU ROW_LOAD_COUNTER + $01
 
+; Store interrupt state
+INTR_STATE EQU PREV_BTN_STATE + $01
+
 ENDC

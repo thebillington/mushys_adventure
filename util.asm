@@ -7,8 +7,6 @@ _BG_MAP EQU $9000
 ; Timer modulo value
 __TMA_Value__ EQU $99
 
-CNT EQU $C100
-
 OAMDATALOC = _RAM  
 
 ; Generic sprite function
@@ -426,4 +424,15 @@ JpIfButtonHeld: MACRO
     xor b                       ; Compare stored state vs current state
 
     jp z, \2    ; if not 0 jump to passed label
+ENDM
+
+; Only continue if VBlank interrupt
+WaitVBlankIF: MACRO
+.loop\@
+    halt                ; Wait till interrupt
+    ld a, [INTR_STATE]  ; Load INTR_STATE to A
+    and IEF_VBLANK      ; AND A with IEF_VBLANK
+    jp z, .loop\@       ; If z then jump to loop
+    ld hl, INTR_STATE   ; Load INTR_STATE loc to A
+    ld [hl], $0         ; Clear INTR_STATE
 ENDM

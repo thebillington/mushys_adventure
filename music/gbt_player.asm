@@ -173,13 +173,13 @@ ENDC
     ld      [hl],a
 
     ld      hl,gbt_vol
-    ld      a,$60 ; 47%
+    ld      a,$60 ; 44%
     ld      [hl+],a
-    ld      a,$60 ; 47%
+    ld      a,$80 ; 56%
     ld      [hl+],a
-    ld      a,$60 ; 25%
+    ld      a,$40 ; 50%
     ld      [hl+],a
-    ld      a,$60 ; 47%
+    ld      a,$60 ; 44%
     ld      [hl+],a
 
     ld      a,0

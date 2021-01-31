@@ -129,7 +129,7 @@ ApplyGravity: MACRO
     jr z, .endCheck\@                       ; If we are at terminal velocity, end the check
     jr c, .setTerminal\@                    ; If we are above terminal velocity, set Y_VEL to terminal velocity
 
-    ; If we reached this point, we need to apply gravity
+; If we reached this point, we need to apply gravity
     ld a, Y_VEL
     add GRAVITY                             ; Load Y_VEL and apply gravity
 

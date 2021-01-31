@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc"
+INCLUDE "memory_map.inc"
 
 LoadPlayer: MACRO
 
@@ -7,11 +8,12 @@ LoadPlayer: MACRO
 .loadPlayerSpritesLoop\@
 
     Spr_getY d
-    ld e, $70
+    ld e, PLAYER_START_POS
     ld a, d
     DIVIDE a, $02
     MULT $07
     add e
+    sub $08
 	ld [hl], a
     
     Spr_getX d
@@ -20,6 +22,7 @@ LoadPlayer: MACRO
     MOD a, $02
     MULT $07
     add e
+    sub $08
 	ld [hl], a        
 
     Spr_getTile d
@@ -39,5 +42,29 @@ LoadPlayer: MACRO
     jr .loadPlayerSpritesLoop\@
 
 .loadPlayerFallthrough\@
+
+ENDM
+
+MovePlayerY: MACRO
+
+    ld d, $00
+    ld e, \1
+
+.movePlayerYLoop\@
+
+    Spr_getY d
+    ld a, [hl]
+    sub e                               ; Subtract the value so that we can treat positive numbers as up and negative as down
+	ld [hl], a
+
+    ld a, $03
+    sub d
+
+    jr z, .movePlayerYFallthrough\@
+
+    inc d
+    jr .movePlayerYLoop\@
+
+.movePlayerYFallthrough\@
 
 ENDM

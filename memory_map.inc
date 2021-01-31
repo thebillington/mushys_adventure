@@ -28,4 +28,7 @@ PREV_BTN_STATE EQU ROW_LOAD_COUNTER + $01
 ; Store interrupt state
 INTR_STATE EQU PREV_BTN_STATE + $01
 
+; Physics labels
+Y_VEL EQU INTR_STATE + $01
+
 ENDC

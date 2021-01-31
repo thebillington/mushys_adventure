@@ -8,7 +8,7 @@ LoadPlayer: MACRO
 .loadPlayerSpritesLoop\@
 
     Spr_getY d
-    ld e, PLAYER_START_POS
+    ld e, PLAYER_START_POS_Y
     ld a, d
     DIVIDE a, $02
     MULT $07
@@ -17,12 +17,11 @@ LoadPlayer: MACRO
 	ld [hl], a
     
     Spr_getX d
-    ld e, $10
+    ld e, PLAYER_START_POS_X
     ld a, d
     MOD a, $02
     MULT $07
     add e
-    sub $08
 	ld [hl], a        
 
     Spr_getTile d

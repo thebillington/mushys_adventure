@@ -352,6 +352,7 @@ CalculateTilePosition: MACRO
     ld c, e
 
     ld a, [hl]                                      ; Get the y position of the sprite bottom left tile
+    dec a
     ld d, a                                         ; Store it in d
 
     ld e, b

@@ -6,17 +6,16 @@ main: link
 
 link: assemble
 	@printf "Linking main.o...\n"
-	rgblink -v -w -n main.sym -m main.map -p 0xFF -o main.gb main.o
-	# Commenting out until we can fix ROM banking for gbt_player (not my job lol)
-	# rgblink -v -w -n main.sym -m main.map -p 0xFF -o main.gb main.o gbt_player.o gbt_player_bank1.o song.o
+	rgblink -v -w -n main.sym -m main.map -p 0xFF -o main.gb main.o gbt_player.o gbt_player_bank1.o song.o images.o
 	@printf "DONE\n\n"
 
 assemble: main.asm
 	@printf "Assembling main.asm gbt_player.asm gbt_player_bank1.asm song.asm...\n"
-	rgbasm -v -i ./music/ -o main.o main.asm
-	# rgbasm -v -i ./music/ -o gbt_player.o ./music/gbt_player.asm
-	# rgbasm -v -i ./music/ -o gbt_player_bank1.o ./music/gbt_player_bank1.asm
-	# rgbasm -v -i ./music/ -o song.o ./music/song.asm
+	rgbasm -v -i ./music/ -i ./images/ -o main.o main.asm
+	rgbasm -v -i ./music/ -i ./images/ -o images.o ./images/images.asm
+	rgbasm -v -i ./music/ -i ./images/ -o gbt_player.o ./music/gbt_player.asm
+	rgbasm -v -i ./music/ -i ./images/ -o gbt_player_bank1.o ./music/gbt_player_bank1.asm
+	rgbasm -v -i ./music/ -i ./images/ -o song.o ./music/song.asm
 	@printf "DONE\n\n"
 
 clean:

@@ -69,6 +69,8 @@ endr
 SECTION "Game Code", ROM0[$0150]
 
 Start:
+
+.restart
     ld SP, $FFFF    ; Set stack pointer to the top of HRAM
 
     ClearRAM        ; ClearRAM MACRO
@@ -195,13 +197,36 @@ Start:
 
 ; -------- START Main Loop ---------
 .loop
-    WaitVBlankIF        ; Wait for VBlank interrupt (this should get us running at ~60Hz)
+    WaitVBlankIF                        ; Wait for VBlank interrupt (this should get us running at ~60Hz)
 
-    UpdatePhysics       ; Perform a full physics update
+    UpdatePhysics                       ; Perform a full physics update
 
-    jp .loop            ; Jump back to the top of the game loop
+    CheckEndLevel .loadCredits          ; Jump to the credits if the player is at the end of the level
+
+    jp .loop                            ; Jump back to the top of the game loop
 
 ; -------- END Main Loop --------
+
+.loadCredits
+
+    xor a
+    ld[rSCX], a                         ; Reset screen scroll position
+
+; -------- Load credits ---------
+    LoadImageBanked credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end, %10010001   ; LoadImageBanked MACRO
+
+.credits
+; -------- Checks whether button is still being pressed ------
+    JpIfButtonHeld PADF_A, .credits     ; waits until button isn't being pressed
+
+; -------- Wait for A button press ------
+    FetchJoypadState            ; FetchJoypadState MACRO
+    and PADF_A                  ; If A then set NZ flag
+
+    jr z, .credits               ; If not A then loop
+
+; -------- After credits, restart game ------
+jp .restart
 
 ; -------- Lock up the CPU ---------
 .debug         

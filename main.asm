@@ -72,13 +72,18 @@ endr
 SECTION "Game Code", ROM0[$0150]
 
 Start:
-
-.restart
     ld SP, $FFFF    ; Set stack pointer to the top of HRAM
 
     ClearRAM        ; ClearRAM MACRO
 
     DMA_COPY        ; Copy the DMA Routine to HRAM
+
+;  -------- GBT_Player Setup --------
+    ld de, song_data
+    ld bc, BANK(song_data)
+    ld a, $05
+    call gbt_play
+    call gbt_loop
 
     xor a               ; (ld a, 0)
     ld [rTIMA], a       ; Set TIMA to 0
@@ -101,27 +106,21 @@ Start:
     ld [rDIV], a    ; Load DIV with A (Reset to zero)
     ld [rTAC], a    ; Load TAC with A
 
-; -------- Initial Configuration --------
-
-; -------- Clear the screen ---------
-    WipeVRAM %10010001
-
 ; ------- Load colour pallet ----------
     ld a, %11100100     ; Load A with colour pallet settings
     ld [rBGP], a        ; Load BG colour pallet with A
     ld [rOBP0], a       ; Load OBJ0 colour pallet with A
 
+; -------- Initial Configuration --------
+
+.restart
+; -------- Clear the screen ---------
+    WipeVRAM %10010001
+
 ; ------- Set scroll x and y ----------
     xor a               ; (ld a, 0)
     ld [rSCX], a        ; Load BG scroll Y with A
     ld [rSCY], a        ; Load BG scroll X with A
-
-;  -------- GBT_Player Setup --------
-    ld de, song_data
-    ld bc, BANK(song_data)
-    ld a, $05
-    call gbt_play
-    call gbt_loop
 
 ; -------- Splash screen and story --------
 
@@ -130,7 +129,7 @@ Start:
 
 .splash
     ; Comment/uncomment this to jump straight to game or display the splash screen and tutorial
-    jp .startGame
+    ;jp .startGame
 
 ; -------- Wait for start button press ------
     FetchJoypadState    ; FetchJoypadState MACRO

@@ -12,7 +12,10 @@ ASMFLAGS = -v -i ./music/ -i ./images/
 LINKFLAGS = -v -w -n $@.sym -m $@.map -p 0xFF
 FIXFLAGS = -v -m 0x19 -p 0xFF
 
-all: $(NAME)
+all:
+	$(MAKE) entry || $(MAKE) clean
+
+entry: $(NAME)
 	@printf "Fixing $<.gb...\n"
 	$(FIX) $(FIXFLAGS) $<.gb
 	@rm -f ./*.o
@@ -30,6 +33,7 @@ $(OBJS): $(SRC)
 	$(ASM) $(ASMFLAGS) -o $@ $*.asm
 	@printf "DONE\n\n"
 
+.PHONY: clean
 clean:
 	@printf "Cleaning work space...\n"
 	@rm -f ./*.gb

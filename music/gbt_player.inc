@@ -37,6 +37,8 @@ GBT_PLAYER_INC SET 1
     EXPORT  gbt_update ; Updates the player, must be called each VBL.
                        ; Note: This will change the active ROM bank!
 
+    EXPORT  song_data ; Default label generated from mod2gbt
+
 ; - If the following value is uncomented, the total of banks allowed is 512
 ;   (or more), but it's a bit slower. MBC5 ONLY, DOESN'T WORK WITH OTHERS!!!
 ;   YOU MUST USE THE -512-banks OPTION WHEN CONVERTING A SONG WITH mod2gbt!!!

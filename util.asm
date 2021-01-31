@@ -368,6 +368,16 @@ LoadImage: MACRO
 
 ENDM
 
+; Load an image file from bank
+LoadImageBanked: MACRO
+
+    ld a, BANK(\1)  ; Load bank containing the label to a
+    ld [rROMB0], a  ; Load bank to bank register to switch
+
+    LoadImage \1, \2, \3, \4, \5    ; LoadImage MACRO
+
+ENDM
+
 ; Wipe VRAM
 WipeVRAM: MACRO
 

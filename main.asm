@@ -1,11 +1,12 @@
 INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
-; INCLUDE "music/gbt_player.inc"
+INCLUDE "music/gbt_player.inc"
+INCLUDE "images/images.inc"
+
+; -------- INCLUDE UTILITIES --------
 INClUDE "util.asm"
 INClUDE "player_util.asm"
 INCLUDE "dma.asm"
-
-; EXPORT  song_data
 
 ; -------- INCLUDE BACKGROUND TILES --------
 INCLUDE "tiles.asm"
@@ -17,12 +18,6 @@ INCLUDE "sprites/mushySmall.asm"
 
 ; -------- INCLUDE LEVELS --------
 INCLUDE "level.asm"
-
-; -------- INCLUDE SPLASH SCREEN --------
-INCLUDE "images/splash.asm"
-INCLUDE "images/storyOne.asm"
-INCLUDE "images/storyTwo.asm"
-INCLUDE "images/storyThree.asm"
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers
@@ -89,7 +84,7 @@ Start:
 
     xor a           ; (ld a, 0)
     or IEF_VBLANK   ; Load VBlank mask into A
-    ; or IEF_TIMER    ; Load Timer mask into A
+    or IEF_TIMER    ; Load Timer mask into A
     ld [rIE], a     ; Set interrupt flags
     ei              ; Enable interrupts
 
@@ -115,16 +110,16 @@ Start:
     ld [rSCY], a        ; Load BG scroll X with A
 
 ;  -------- GBT_Player Setup --------
-    ;ld de, song_data
-    ;ld bc, BANK(song_data)
-    ;ld a, $05
-    ;call gbt_play
-    ;call gbt_loop
+    ld de, song_data
+    ld bc, BANK(song_data)
+    ld a, $05
+    call gbt_play
+    call gbt_loop
 
 ; -------- Splash screen and story --------
 
 ; -------- Load splash screen ---------
-    LoadImage mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImage MACRO
 
 .splash
     WaitVBlankIF
@@ -136,7 +131,7 @@ Start:
     jr z, .splash       ; If not start then loop
 
 ; -------- Load story 1 ---------
-    LoadImage mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImage MACRO
 
 .story1
 ; -------- Wait for A button press ------
@@ -146,7 +141,7 @@ Start:
     jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
-    LoadImage mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImage MACRO
 
 .story2
 ; -------- Checks whether button is still being pressed ------
@@ -159,7 +154,7 @@ Start:
     jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
-    LoadImage mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageBanked mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImage MACRO
 
 .story3
 ; -------- Checks whether button is still being pressed ------
@@ -218,7 +213,7 @@ TIHandler:
     push bc     ; Preserve BC register
     push af     ; Preserve AF register
 
-    ;call gbt_update
+    call gbt_update
 
     pop af      ; Restore AF register
     pop bc      ; Restore BC register

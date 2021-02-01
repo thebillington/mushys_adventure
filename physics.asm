@@ -252,7 +252,7 @@ ENDM
 
 LoadNextColumn: MACRO
 
-    WaitVBlank
+    WaitVBlankIF
     
     ; Load bc with the value of the first tile of the first column of data
     ld a, [LEVEL_COLUMN_POINTER_LOW]

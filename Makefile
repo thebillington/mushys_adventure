@@ -8,7 +8,7 @@ ASM = rgbasm
 LINK = rgblink
 FIX = rgbfix
 
-ASMFLAGS = -v -i ./music/ -i ./images/
+ASMFLAGS = -v -i ./music/ -i ./images/ -i ./utils/
 LINKFLAGS = -v -w -n $@.sym -m $@.map -p 0xFF
 FIXFLAGS = -v -m 0x19 -p 0xFF
 

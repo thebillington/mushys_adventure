@@ -9,8 +9,6 @@ _RAM_END EQU $DFFF                      ; $C000->$DFFF
 _VRAM_END EQU $9FFF                     ; $8000->$9FFF
 _BG_MAP EQU $9000                       ; $9000->$97FF
 
-LCD_SETTING EQU LCDCF_ON | LCDCF_BG8000 | LCDCF_OBJON | LCDCF_BGON
-
 OAMDATALOC EQU _RAM                     ; Using the first 160 bytes of RAM as OAM
 OAMDATALOCBANK EQU OAMDATALOC / $100    ; gets the upper byte of location
 
@@ -20,6 +18,8 @@ PLAYER_START_POS_Y EQU $70              ; Starting player y location
 PLAYER_START_POS_X EQU $10              ; Starting player x location
 
 FIRST_COL_TO_LOAD EQU 28                ; Starting column for conveyor loading
+LEVEL_BEGIN EQU $9840                   ; First tile for level tilemap
+FLOOR_BEGIN EQU $99E0                   ; First tile for floor tilemap
 
 JUMP_POWER EQU 3                        ; Jump power constant
 TERMINAL_VEL EQU 2                      ; Max speed constant

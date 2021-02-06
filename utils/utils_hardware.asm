@@ -72,26 +72,12 @@ ENDM
 
 ; Switch screen off
 SwitchScreenOn: MACRO
-    
-; -------- Set screen enable settings ---------
-; Bit 7 - LCD Display Enable
-; Bit 6 - Window Tile Map Display Select
-; Bit 5 - Window Display Enable
-; Bit 4 - BG & Window Tile Data Select
-; Bit 3 - BG Tile Map Display Select
-; Bit 2 - OBJ (Sprite) Size
-; Bit 1 - OBJ (Sprite) Display Enable
-; Bit 0 - BG/Window Display/Priority
     ld a, \1
     ld [rLCDC], a
-
 ENDM
 
 ; Switch screen off
 SwitchScreenOff: MACRO
-
-; -------- Switch screen off ---------
     xor a           ; (ld a, 0)
     ld [rLCDC], a   ; Load A into LCDC register
-
 ENDM

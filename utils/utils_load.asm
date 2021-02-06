@@ -35,7 +35,7 @@ LoadImageSwitched: MACRO
 
     LoadImage \1, \2, \3, \4    ; LoadImage MACRO
 
-    SwitchScreenOn LCD_SETTING
+    SwitchScreenOn \5
 ENDM
 
 ; Load an image file from bank
@@ -54,7 +54,7 @@ LoadImageBankedSwitched: MACRO
 
     LoadImageBanked \1, \2, \3, \4  ; LoadImageBanked MACRO
 
-    SwitchScreenOn LCD_SETTING
+    SwitchScreenOn \5
 
 ENDM
 
@@ -65,13 +65,13 @@ LoadLevel: MACRO
     ld bc, LEVEL
 
     ld hl, COLUMN_LOAD_COUNTER          
-    ld [hl], $1C
+    ld [hl], FIRST_COL_TO_LOAD
 
     ld hl, COLUMN_OFFSET_X
     ld [hl], $0
 
 .levelInitLoop\@
-    ld de, $9840
+    ld de, LEVEL_BEGIN
 
     ld a, [COLUMN_OFFSET_X]
     add e
@@ -85,7 +85,7 @@ LoadLevel: MACRO
     ld [hl], a
 
     ld a, [COLUMN_LOAD_COUNTER]
-    sub a, $01
+    dec a
     ld hl, COLUMN_LOAD_COUNTER
     ld [hl], a
 
@@ -112,7 +112,7 @@ LoadLevelColumn: MACRO
     AddSixteenBitDE $20
 
     ld a, [ROW_LOAD_COUNTER]
-    sub a, $01
+    dec a
     ld hl, ROW_LOAD_COUNTER
     ld [hl], a
 
@@ -136,7 +136,7 @@ LoadFloor: MACRO
     ld [hl], $0
 
 .floorLoop\@
-    ld de, $99E0
+    ld de, FLOOR_BEGIN
 
     ld a, [COLUMN_OFFSET_X]
     add e
@@ -150,7 +150,7 @@ LoadFloor: MACRO
     ld [hl], a
 
     ld a, [COLUMN_LOAD_COUNTER]
-    sub a, $01
+    dec a
     ld hl, COLUMN_LOAD_COUNTER
     ld [hl], a
 
@@ -175,7 +175,7 @@ LoadFloorColumn: MACRO
     AddSixteenBitDE $20
 
     ld a, [ROW_LOAD_COUNTER]
-    sub a, $01
+    dec a
     ld hl, ROW_LOAD_COUNTER
     ld [hl], a
 

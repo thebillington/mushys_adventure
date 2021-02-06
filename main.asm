@@ -124,7 +124,7 @@ Start:
 ; -------- Load splash screen ---------
     LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end    ; utils_load -> LoadImageBanked Macro
 
-    SwitchScreenOn LCD_SETTING  ; utils_hardware -> SwitchScreenOn Macro
+    SwitchScreenOn LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON   ; utils_hardware -> SwitchScreenOn Macro
 
 .splash
     ; Comment/uncomment this to jump straight to game or display the splash screen and tutorial
@@ -137,7 +137,7 @@ Start:
     jr z, .splash       ; If not start then loop
 
 ; -------- Load story 1 ---------
-    LoadImageBankedSwitched mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
+    LoadImageBankedSwitched mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story1
 ; -------- Wait for A button press ------
@@ -147,7 +147,7 @@ Start:
     jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
-    LoadImageBankedSwitched mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
+    LoadImageBankedSwitched mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story2
 ; -------- Checks whether button is still being pressed ------
@@ -160,7 +160,7 @@ Start:
     jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
-    LoadImageBankedSwitched mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
+    LoadImageBankedSwitched mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story3
 ; -------- Checks whether button is still being pressed ------
@@ -195,7 +195,7 @@ Start:
     InitialisePhysics   ; utils_physics -> InitialisePhysics MACRO
 
 ; -------- Set screen enable settings ---------
-    SwitchScreenOn LCD_SETTING  ; utils_hardware -> SwitchScreenOn MACRO
+    SwitchScreenOn LCDCF_ON | LCDCF_BG8000 | LCDCF_OBJON | LCDCF_BGON   ; utils_hardware -> SwitchScreenOn MACRO
 
 ; -------- START Main Loop ---------
 .loop
@@ -215,7 +215,7 @@ Start:
     ld[rSCX], a                         ; Reset screen scroll position
 
 ; -------- Load credits ---------
-    LoadImageSwitched credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end  ; utils_load -> LoadImageSwitched Macro
+    LoadImageSwitched credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end, LCDCF_ON | LCDCF_BG8000 | LCDCF_BGON  ; utils_load -> LoadImageSwitched Macro
 
 .credits
 ; -------- Checks whether button is still being pressed ------

@@ -60,8 +60,10 @@ function selectTab(tab) {
 
 function initEditorTextChangeListener() {
     document.getElementById("editorText").addEventListener("change", (event) => {
-        editorData[selectedTab] = event.target.value;
-        if (selectedTab == "tiles") decodeTileData(event.target.value);
+        var newData = event.target.value.replaceAll("\n\n",",").toUpperCase();
+        editorData[selectedTab] = newData;
+        document.getElementById("editorText").value = newData;
+        if (selectedTab == "tiles") decodeTileData(newData);
     });
 }
 
@@ -108,7 +110,6 @@ function decodeTileData(dataString) {
         }
         tileData[i] = rowData;
     }
-    console.log(tileData);
 }
 
 function hexToBinary(hex){

@@ -1,10 +1,8 @@
 INCLUDE "hardware.inc"
+INCLUDE "memory_map.inc"
 
 ; https://exez.in/gameboy-dma
 ; https://github.com/lancekindle/DMGreport/blob/master/03_good_sprite_moves.asm
-
-OAMDATALOC = _RAM                   ; Using the first 160 bytes of RAM as OAM
-OAMDATALOCBANK = OAMDATALOC / $100  ; gets the upper byte of location
 
 ; Copies the DMA code to HRAM
 DMA_COPY: MACRO

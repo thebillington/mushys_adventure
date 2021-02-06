@@ -6,9 +6,6 @@ INCLUDE "images/images.inc"
 ; -------- INCLUDE UTILITIES --------
 INCLUDE "constants.asm"
 INClUDE "util.asm"
-INClUDE "player_util.asm"
-INClUDE "physics.asm"
-INCLUDE "dma.asm"
 
 ; -------- INCLUDE SPRITES --------
 INCLUDE "sprites/tiles.asm"
@@ -20,7 +17,7 @@ INCLUDE "sprites/mushySmall.asm"
 INCLUDE "levels/level.asm"
 
 ; -------- INCLUDE CREDITS --------
-INCLUDE "credits.asm"
+INCLUDE "images/asm/credits.asm"    ; Fix with ROM banking
 
 ; -------- INTERRUPT VECTORS --------
 ; specific memory addresses are called when a hardware interrupt triggers

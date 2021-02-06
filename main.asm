@@ -4,7 +4,6 @@ INCLUDE "music/gbt_player.inc"
 INCLUDE "images/images.inc"
 
 ; -------- INCLUDE UTILITIES --------
-INCLUDE "constants.asm"
 INClUDE "util.asm"
 
 ; -------- INCLUDE SPRITES --------

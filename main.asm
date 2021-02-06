@@ -5,6 +5,7 @@ INCLUDE "images/images.inc"
 
 ; -------- INCLUDE UTILITIES --------
 INClUDE "util.asm"
+INCLUDE "constants.inc"
 
 ; -------- INCLUDE SPRITES --------
 INCLUDE "sprites/tiles.asm"
@@ -49,7 +50,6 @@ SECTION "Joypad", ROM0[$0060]
     reti
 
 ; -------- HEADER --------
-
 SECTION "Header", ROM0[$0100]
 
 EntryPoint:
@@ -62,7 +62,6 @@ rept $150 - $104
 endr
 
 ; -------- MAIN --------
-
 SECTION "Game Code", ROM0[$0150]
 
 Start:
@@ -112,7 +111,8 @@ Start:
 
 .init
 ; -------- Clear the screen ---------
-    WipeVRAM %10010001
+    SwitchScreenOff     ; utils_hardware -> SwitchScreenOff Macro
+    ClearVRAM           ; utils_clear -> ClearVRAM Macro
 
 ; ------- Set scroll x and y ----------
     xor a               ; (ld a, 0)
@@ -122,50 +122,52 @@ Start:
 ; -------- Splash screen and story --------
 
 ; -------- Load splash screen ---------
-    LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end, %10010001   ; LoadImageBanked MACRO
+    LoadImageBanked mushysplash_tile_data, mushysplash_tile_data_end, mushysplash_map_data, mushysplash_map_data_end    ; utils_load -> LoadImageBanked Macro
+
+    SwitchScreenOn LCD_SETTING  ; utils_hardware -> SwitchScreenOn Macro
 
 .splash
     ; Comment/uncomment this to jump straight to game or display the splash screen and tutorial
     ;jp .startGame
 
 ; -------- Wait for start button press ------
-    FetchJoypadState    ; FetchJoypadState MACRO
+    FetchJoypadState    ; utils_hardware -> FetchJoypadState MACRO
     and PADF_START      ; If start then set NZ flag
 
     jr z, .splash       ; If not start then loop
 
 ; -------- Load story 1 ---------
-    LoadImageBanked mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end, %10010001   ; LoadImageBanked MACRO
+    LoadImageBankedSwitched mushystory1_tile_data, mushystory1_tile_data_end, mushystory1_map_data, mushystory1_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story1
 ; -------- Wait for A button press ------
-    FetchJoypadState            ; FetchJoypadState MACRO
+    FetchJoypadState            ; utils_hardware -> FetchJoypadState MACRO
     and PADF_A                  ; If A then set NZ flag
 
     jr z, .story1               ; If not A then loop
 
 ; -------- Load story 2 ---------
-    LoadImageBanked mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end, %10010001   ; LoadImageBanked MACRO
+    LoadImageBankedSwitched mushystory2_tile_data, mushystory2_tile_data_end, mushystory2_map_data, mushystory2_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story2
 ; -------- Checks whether button is still being pressed ------
-    JpIfButtonHeld PADF_A, .story2     ; waits until button isn't being pressed
+    JpIfButtonHeld PADF_A, .story2     ; utils_hardware -> JpIfButtonHeld MACRO
 
 ; -------- Wait for A button press ------
-    FetchJoypadState            ; FetchJoypadState MACRO
+    FetchJoypadState            ; utils_hardware -> FetchJoypadState MACRO
     and PADF_A                  ; If A then set NZ flag
 
     jr z, .story2               ; If not A then loop
 
 ; -------- Load story 3 ---------
-    LoadImageBanked mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end, %10010001   ; LoadImageBanked MACRO
+    LoadImageBankedSwitched mushystory3_tile_data, mushystory3_tile_data_end, mushystory3_map_data, mushystory3_map_data_end    ; utils_load -> LoadImageBankedSwitched Macro
 
 .story3
 ; -------- Checks whether button is still being pressed ------
-    JpIfButtonHeld PADF_A, .story3     ; waits until button isn't being pressed
+    JpIfButtonHeld PADF_A, .story3     ; utils_hardware -> JpIfButtonHeld MACRO
 
 ; -------- Wait for A button press ------
-    FetchJoypadState            ; FetchJoypadState MACRO
+    FetchJoypadState            ; utils_hardware -> FetchJoypadState MACRO
     and PADF_A                  ; If A then set NZ flag
 
     jr z, .story3               ; If not A then loop
@@ -174,34 +176,34 @@ Start:
 .startGame
 
 ; -------- Wipe all data from VRAM ---------
-    SwitchScreenOff     ; SwitchScreenOff MACRO
+    SwitchScreenOff     ; utils_hardware -> SwitchScreenOff MACRO
 
-    ClearScreen         ; ClearScreen MACRO
+    ClearVRAM           ; utils_clear -> ClearScreen MACRO
 
 ; -------- Load tiles into VRAM ------
-    CopyData _VRAM, TILES, TILESEND
-    CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND
+    CopyData _VRAM, TILES, TILESEND         ; utils_load -> CopyData MACRO
+    CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND ; utils_load -> CopyData MACRO
 
 ; -------- Load level ---------
-    LoadFloor
-    LoadLevel
+    LoadFloor   ; utils_load -> LoadFloor MACRO
+    LoadLevel   ; utils_load -> LoadLevel MACRO
 
 ; ------- Init player sprite into OAM -------
-    LoadPlayer
+    LoadPlayer  ; utils_load -> LoadPlayer MACRO
 
 ; ------- Init player sprite into OAM -------
-    InitialisePhysics
+    InitialisePhysics   ; utils_physics -> InitialisePhysics MACRO
 
 ; -------- Set screen enable settings ---------
-    SwitchScreenOn %10010011            ; SwitchScreenOn MACRO
+    SwitchScreenOn LCD_SETTING  ; utils_hardware -> SwitchScreenOn MACRO
 
 ; -------- START Main Loop ---------
 .loop
     WaitVBlankIF                        ; Wait for VBlank interrupt (this should get us running at ~60Hz)
 
-    UpdatePhysics                       ; Perform a full physics update
+    UpdatePhysics                       ; utils_physics -> UpdatePhysics MACRO
 
-    CheckEndLevel .loadCredits          ; Jump to the credits if the player is at the end of the level
+    CheckEndLevel .loadCredits          ; utils_level -> CheckEndLevel MACRO
 
     jp .loop                            ; Jump back to the top of the game loop
 
@@ -213,14 +215,14 @@ Start:
     ld[rSCX], a                         ; Reset screen scroll position
 
 ; -------- Load credits ---------
-    LoadImage credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end, %10010001   ; LoadImage MACRO
+    LoadImageSwitched credits_tile_data, credits_tile_data_end, credits_map_data, credits_map_data_end  ; utils_load -> LoadImageSwitched Macro
 
 .credits
 ; -------- Checks whether button is still being pressed ------
-    JpIfButtonHeld PADF_A, .credits     ; waits until button isn't being pressed
+    JpIfButtonHeld PADF_A, .credits     ; utils_hardware -> FetchJoypadState MACRO
 
 ; -------- Wait for A button press ------
-    FetchJoypadState            ; FetchJoypadState MACRO
+    FetchJoypadState            ; utils_hardware -> FetchJoypadState MACRO
     and PADF_A                  ; If A then set NZ flag
 
     jr z, .credits               ; If not A then loop

@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
+INCLUDE "constants.inc"
 
 ; -------- Hardware Macros --------
 ; Waits for VBLANK before commiting any memory to VRAM
@@ -67,4 +68,30 @@ WaitVBlankIF: MACRO
     jp z, .loop\@       ; If z then jump to loop
     ld hl, INTR_STATE   ; Load INTR_STATE loc to A
     ld [hl], $0         ; Clear INTR_STATE
+ENDM
+
+; Switch screen off
+SwitchScreenOn: MACRO
+    
+; -------- Set screen enable settings ---------
+; Bit 7 - LCD Display Enable
+; Bit 6 - Window Tile Map Display Select
+; Bit 5 - Window Display Enable
+; Bit 4 - BG & Window Tile Data Select
+; Bit 3 - BG Tile Map Display Select
+; Bit 2 - OBJ (Sprite) Size
+; Bit 1 - OBJ (Sprite) Display Enable
+; Bit 0 - BG/Window Display/Priority
+    ld a, \1
+    ld [rLCDC], a
+
+ENDM
+
+; Switch screen off
+SwitchScreenOff: MACRO
+
+; -------- Switch screen off ---------
+    xor a           ; (ld a, 0)
+    ld [rLCDC], a   ; Load A into LCDC register
+
 ENDM

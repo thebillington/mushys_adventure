@@ -181,3 +181,29 @@ LoadFloorColumn: MACRO
 
     jr nz, .floorColumnLoop\@     ; If we haven't finished loading the level jump up to the next tile map location
 ENDM
+
+LoadNextColumn: MACRO
+
+    WaitVBlank
+    
+    ; Load bc with the value of the first tile of the first column of data
+    ld a, [LEVEL_COLUMN_POINTER_LOW]
+    ld b, a
+    ld a, [LEVEL_COLUMN_POINTER_HIGH]
+    ld c, a
+
+    ld de, LEVEL_BEGIN                              ; Load de with the top left tile of our map (the first 2 rows don't have any tiles in)
+
+    ld a, [COLUMN_LOAD_OFFSET]
+    MOD a, $20
+    add e
+    ld e, a                                         ; Offset by the required column offset (this loads into the correct column)
+
+    LoadLevelColumn                                 ; Initiate the data load
+
+    ld a, [COLUMN_LOAD_OFFSET]
+    inc a
+    ld hl, COLUMN_LOAD_OFFSET
+    ld [hl], a
+
+ENDM

@@ -6,7 +6,7 @@ _VRAM_END EQU $9FF0
 _BG_MAP EQU $9000
 
 ; Timer modulo value
-__TMA_Value__ EQU $99
+TMA_Value EQU $99
 
 OAMDATALOC = _RAM  
 

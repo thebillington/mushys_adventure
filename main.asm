@@ -10,16 +10,14 @@ INClUDE "player_util.asm"
 INClUDE "physics.asm"
 INCLUDE "dma.asm"
 
-; -------- INCLUDE BACKGROUND TILES --------
-INCLUDE "tiles.asm"
-
 ; -------- INCLUDE SPRITES --------
+INCLUDE "sprites/tiles.asm"
 INCLUDE "sprites/mushyBig.asm"
 INCLUDE "sprites/mushyMid.asm"
 INCLUDE "sprites/mushySmall.asm"
 
 ; -------- INCLUDE LEVELS --------
-INCLUDE "level.asm"
+INCLUDE "levels/level.asm"
 
 ; -------- INCLUDE CREDITS --------
 INCLUDE "credits.asm"
@@ -32,7 +30,7 @@ INCLUDE "credits.asm"
 ; (VRAM) is only available during VBLANK. So this is when updating OAM /
 ; sprites is executed.
 SECTION "VBlank", ROM0[$0040]
-    jp VBHandler
+    jp VBHandler    ; Jump to VBlank handler routine
 
 ; LCDC interrupts are LCD-specific interrupts (not including vblank) such as
 ; interrupting when the gameboy draws a specific horizontal line on-screen
@@ -78,30 +76,33 @@ Start:
 
     DMA_COPY        ; Copy the DMA Routine to HRAM
 
-;  -------- GBT_Player Setup --------
+;  -------- GBT_Player setup --------
     ld de, song_data
     ld bc, BANK(song_data)
     ld a, $05
     call gbt_play
     call gbt_loop
 
+;  -------- Timer setup --------
     xor a               ; (ld a, 0)
     ld [rTIMA], a       ; Set TIMA to 0
     or TACF_STOP        ; Set STOP bit in A
-    or TACF_4KHZ       ; Set divider bit in A
+    or TACF_4KHZ        ; Set divider bit in A
     ld [rTAC], a        ; Load TAC with A (settings)
-    ld a, __TMA_Value__ ; Load A with modulo value
+    ld a, TMA_Value     ; Load A with modulo value
     ld [rTMA], a        ; Load TMA with A
     ld [rTIMA], a       ; Load TIMA with A (Reset to zero)
 
+;  -------- Enable interrupts --------
     xor a           ; (ld a, 0)
     or IEF_VBLANK   ; Load VBlank mask into A
     or IEF_TIMER    ; Load Timer mask into A
     ld [rIE], a     ; Set interrupt flags
     ei              ; Enable interrupts
 
+;  -------- Timer start --------
     xor a           ; (ld a, 0)
-    or TACF_4KHZ   ; Set divider bit in A 
+    or TACF_4KHZ    ; Set divider bit in A 
     or TACF_START   ; Set START bit in A
     ld [rDIV], a    ; Load DIV with A (Reset to zero)
     ld [rTAC], a    ; Load TAC with A
@@ -113,7 +114,7 @@ Start:
 
 ; -------- Initial Configuration --------
 
-.restart
+.init
 ; -------- Clear the screen ---------
     WipeVRAM %10010001
 
@@ -229,7 +230,7 @@ Start:
     jr z, .credits               ; If not A then loop
 
 ; -------- After credits, restart game ------
-jp .restart
+jp .init
 
 ; -------- Lock up the CPU ---------
 .debug         
@@ -248,16 +249,16 @@ VBHandler:
 
 ; -------- Timer Interrupt Handler ---------
 TIHandler:
-    push hl     ; Preserve HL register
-    push de     ; Preserve DE register
-    push bc     ; Preserve BC register
-    push af     ; Preserve AF register
+    push hl         ; Preserve HL register
+    push de         ; Preserve DE register
+    push bc         ; Preserve BC register
+    push af         ; Preserve AF register
 
-    call gbt_update
+    call gbt_update ; Update sound player
 
-    pop af      ; Restore AF register
-    pop bc      ; Restore BC register
-    pop de      ; Restore DE register
-    pop hl      ; Restore HL register
+    pop af          ; Restore AF register
+    pop bc          ; Restore BC register
+    pop de          ; Restore DE register
+    pop hl          ; Restore HL register
     
-    reti
+    reti            ; Return and enable interrupts

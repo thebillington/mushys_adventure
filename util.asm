@@ -463,4 +463,92 @@ CheckEndLevel: MACRO
 
 .endCheck\@
 
+<<<<<<< Updated upstream
+=======
+ENDM
+
+; ----- Allow user to select character based on dpad button press
+SelectCharacter: MACRO
+
+; ----- Check for user input -----
+.checkForButtonPress\@
+    FetchJoypadState                                ; Get the joypad state and store it into PREV_BTN_STATE
+
+; ----- Check if right button was pressed -----
+.rightPadCheck\@
+
+    ld a, [PREV_BTN_STATE]
+    AND PADF_RIGHT                                  ; Load the pad state and apply right button mask
+
+    jp z, .leftPadCheck\@                           ; If right button isn't pressed, check for left button press
+
+    ld a, $01
+    ld [MUSHY_SPRITE_ID], a                         ; Store sprite ID for MushySmall
+
+    jp .endCheck\@                                  ; If the right pad was checked, don't check the left pad
+
+; ----- Check if left button was pressed -----
+.leftPadCheck\@
+
+    ld a, [PREV_BTN_STATE]
+    AND PADF_LEFT                                   ; Load the pad state and apply left button mask
+
+    jp z, .upPadCheck\@                             ; If left button isn't pressed, check for up nutton press
+
+    ld a, $02
+    ld [MUSHY_SPRITE_ID], a                         ; Store sprite ID for MushyBig
+
+    jp .endCheck\@                                  ; If the right pad was checked, don't check the up pad
+
+; ----- Check if up button was pressed -----
+.upPadCheck\@
+
+    ld a, [PREV_BTN_STATE]
+    AND PADF_UP                                     ; Load the pad state and apply up button mask
+
+    jp z, .checkForButtonPress\@                    ; If up button isn't pressed, loop back to check for input
+
+    ld a, $04
+    ld [MUSHY_SPRITE_ID], a                         ; Store sprite ID for MushyBig
+
+.endCheck\@
+
+ENDM
+
+; ----- Loads the chosen sprite into the correct location -----
+LoadSprite: MACRO
+
+; ----- Load mushy small sprite -----
+.loadMushySmall\@
+    ld a, [MUSHY_SPRITE_ID]                         ; Load stored SpriteID
+    AND $01                                         ; Check whether stored ID is mushySmall
+
+    jr z, .loadMushyBig\@                           ; If SpriteID is incorrect, check next sprite
+
+    CopyData _BLOCK1, MUSHYSMALL, MUSHYSMALLEND     ; Select Mushy Small character
+
+    jr .endCheck\@                                  ; If sprite was loaded, jump to end
+
+; ----- Load mushy big sprite -----
+.loadMushyBig\@
+    ld a, [MUSHY_SPRITE_ID]                         ; Load stored SpriteID
+    AND $02                                         ; Check whether stored ID is mushyBig
+
+    jr z, .loadMushyMid\@                           ; If SpriteID is incorrect, check next sprite
+
+    CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND         ; Select Mushy Big character
+
+    jr .endCheck\@                                  ; If sprite was loaded, jump to end
+
+; ----- Load mushy mid sprite -----
+.loadMushyMid\@
+    ld a, [MUSHY_SPRITE_ID]                         ; Load stored SpriteID
+    AND $04                                         ; Check whether stored ID is mushyMid
+
+    jr z, .endCheck\@                               ; If SpriteID is incorrect, loop back to CharacterSelection screen
+
+    CopyData _BLOCK1, MUSHYMID, MUSHYMIDEND         ; Select Mushy Mid character
+
+.endCheck\@
+>>>>>>> Stashed changes
 ENDM

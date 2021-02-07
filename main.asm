@@ -21,6 +21,9 @@ INCLUDE "sprites/mushySmall.asm"
 ; -------- INCLUDE LEVELS --------
 INCLUDE "level.asm"
 
+; -------- INCLUDE CHARACTER SELECTION --------
+INCLUDE "images/asm/charSelect.asm"
+
 ; -------- INCLUDE CREDITS --------
 INCLUDE "credits.asm"
 
@@ -173,6 +176,13 @@ Start:
 
     jr z, .story3               ; If not A then loop
 
+; ----- Load character select -----
+    LoadImage mushycharacterselect_tile_data, mushycharacterselect_tile_data_end, mushycharacterselect_map_data, mushycharacterselect_map_data_end, %10010001   ; LoadImage MACRO
+
+.characterSelect
+
+    SelectCharacter
+
 ; -------- Start of game code ---------
 .startGame
 
@@ -183,7 +193,8 @@ Start:
 
 ; -------- Load tiles into VRAM ------
     CopyData _VRAM, TILES, TILESEND
-    CopyData _BLOCK1, MUSHYBIG, MUSHYBIGEND
+    LoadSprite
+
 
 ; -------- Load level ---------
     LoadFloor

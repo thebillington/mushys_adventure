@@ -1,10 +1,10 @@
 ;###############################################################################
 ;
-; GBT Player v3.0.8
+; GBT Player v3.1.0
 ;
 ; SPDX-License-Identifier: MIT
 ;
-; Copyright (c) 2009-2020, Antonio Niño Díaz <antonio_nd@outlook.com>
+; Copyright (c) 2009-2020 Antonio Niño Díaz <antonio_nd@outlook.com>
 ;
 ;###############################################################################
 
@@ -1169,7 +1169,7 @@ gbt_channel_4_handle:: ; de = info
 
     ; Has instrument
 
-    and     a,$1F
+    and     a,$0F
     ld      hl,gbt_noise
     ld      c,a
     ld      b,0
@@ -1323,17 +1323,7 @@ gbt_ch1234_jump_position:
 
     ; Check to see if jump puts us past end of song
     ld      a,[hl]
-    call    gbt_get_pattern_ptr
-    ld      hl,gbt_current_step_data_ptr
-    ld      a,[hl+]
-    ld      b,a
-    ld      a,[hl]
-    or      a,b
-    jr      nz,.dont_loop
-    xor     a,a
-    ld      [gbt_current_pattern], a
-.dont_loop:
-
+    call    gbt_get_pattern_ptr_banked
     ld      a,1
     ld      [gbt_update_pattern_pointers],a
     xor     a,a ;ret 0

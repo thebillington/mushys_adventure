@@ -1,5 +1,5 @@
 IF !DEF(IMAGES_INC)
-IMAGES_INC SET 1
+DEF IMAGES_INC = 1
 
     EXPORT mushysplash_map_data
     EXPORT mushysplash_map_data_end

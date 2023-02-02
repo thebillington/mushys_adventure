@@ -2,7 +2,7 @@ INCLUDE "hardware.inc"
 INCLUDE "memory_map.inc"
 
     IF !DEF(CONSTANTS_INC)
-CONSTANTS_INC SET 1
+DEF CONSTANTS_INC = 1
 
 ; -------- Constants --------
 _RAM_END EQU $DFFF                      ; $C000->$DFFF

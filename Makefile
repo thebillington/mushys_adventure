@@ -33,6 +33,12 @@ $(OBJS): $(SRC)
 	$(ASM) $(ASMFLAGS) -o $@ $*.asm
 	@printf "DONE\n\n"
 
+.PHONY: play
+play: $(NAME)
+	mkdir -p play/rom
+	cp $<.gb play/rom/
+	@printf "Copied $<.gb to play/rom/\n"
+
 .PHONY: clean
 clean:
 	@printf "Cleaning work space...\n"
